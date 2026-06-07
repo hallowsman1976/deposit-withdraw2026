@@ -3,49 +3,291 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - Mukcoop Saving</title>
-  
+  <meta name="theme-color" content="#F7F7FB">
+  <title>Admin Dashboard · Mukcoop Saving</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #f4f6f9; }
-    .sidebar { min-height: 100vh; background-color: #0b3d91; color: white; }
-    .sidebar a { color: #cfd8dc; text-decoration: none; padding: 15px 20px; display: block; transition: 0.3s; }
-    .sidebar a:hover, .sidebar a.active { background-color: #4da6ff; color: white; border-radius: 0 25px 25px 0; }
-    .content { padding: 20px; width: 100%; }
-    .card-summary { border-radius: 15px; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: white; }
-    .section-page { display: none; }
-    .section-page.active { display: block; animation: fadeIn 0.4s; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; }
+    :root{
+      --brand-1:#0A84FF;--brand-2:#5E5CE6;--brand-3:#BF5AF2;
+      --accent-mint:#30D158;--accent-orange:#FF9F0A;--accent-red:#FF453A;
+      --ink-900:#0B0B0F;--ink-700:#1C1C1E;--ink-500:#3A3A3C;--ink-300:#8E8E93;
+      --ink-200:#C7C7CC;--ink-100:#E5E5EA;--ink-50:#F2F2F7;
+      --surface:rgba(255,255,255,0.72);--surface-strong:rgba(255,255,255,0.88);
+      --hairline:rgba(255,255,255,0.65);--hairline-dark:rgba(0,0,0,0.06);
+      --shadow-xs:0 1px 2px rgba(16,24,40,.04);
+      --shadow-sm:0 2px 8px rgba(16,24,40,.06);
+      --shadow-md:0 8px 24px rgba(16,24,40,.08),0 2px 6px rgba(16,24,40,.04);
+      --shadow-lg:0 20px 60px rgba(16,24,40,.10),0 8px 20px rgba(16,24,40,.05);
+      --shadow-inset:inset 0 1px 0 rgba(255,255,255,.7);
+      --ease-spring:cubic-bezier(.34,1.56,.64,1);
+      --ease-out:cubic-bezier(.22,1,.36,1);
+      --r-md:16px;--r-lg:22px;--r-xl:28px;--r-pill:999px;
+    }
+    *{-webkit-tap-highlight-color:transparent;}
+    html,body{
+      font-family:'Inter','Prompt',-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;
+      color:var(--ink-900);letter-spacing:-0.01em;
+      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    }
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(1200px 600px at 10% -10%,rgba(10,132,255,.16),transparent 60%),
+        radial-gradient(900px 500px at 110% 10%,rgba(191,90,242,.14),transparent 55%),
+        radial-gradient(900px 700px at 50% 110%,rgba(94,92,230,.12),transparent 60%),
+        linear-gradient(180deg,#F7F7FB 0%,#EEF1F7 100%);
+      background-attachment:fixed;
+    }
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.3;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    }
+    .wrap{position:relative;z-index:1;}
+
+    h1,h2,h3,h4,h5,h6{letter-spacing:-0.022em;font-weight:600;}
+
+    /* Sidebar — glass rail */
+    .sidebar{
+      min-height:100vh;width:260px;
+      background:rgba(11,11,15,0.88);
+      backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+      color:rgba(255,255,255,0.85);
+      padding:18px 14px;
+      box-shadow:var(--shadow-lg);
+      position:sticky;top:0;
+    }
+    .sidebar .brand{
+      display:flex;align-items:center;gap:10px;padding:12px 12px 18px;
+      border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:12px;
+    }
+    .sidebar .brand-mark{
+      width:36px;height:36px;border-radius:12px;
+      background:linear-gradient(135deg,var(--brand-1),var(--brand-3));
+      display:flex;align-items:center;justify-content:center;color:#fff;
+      box-shadow:0 8px 20px rgba(10,132,255,.4);
+    }
+    .sidebar .brand-text{font-weight:700;letter-spacing:-0.02em;font-size:1rem;color:#fff;}
+    .sidebar .brand-sub{font-size:.7rem;color:rgba(255,255,255,.5);letter-spacing:.06em;text-transform:uppercase;}
+    .sidebar a.nav-link{
+      color:rgba(255,255,255,0.7);text-decoration:none;
+      padding:11px 14px;display:flex;align-items:center;gap:10px;
+      border-radius:12px;font-weight:500;font-size:.92rem;
+      margin-bottom:4px;
+      transition:background .25s ease,color .2s ease,transform .2s var(--ease-spring);
+    }
+    .sidebar a.nav-link i{font-size:1.1rem;}
+    .sidebar a.nav-link:hover{background:rgba(255,255,255,0.06);color:#fff;transform:translateX(2px);}
+    .sidebar a.nav-link.active{
+      background:linear-gradient(135deg,var(--brand-1),var(--brand-2));
+      color:#fff;
+      box-shadow:0 8px 20px rgba(10,132,255,.35),inset 0 1px 0 rgba(255,255,255,.2);
+    }
+
+    .content{padding:28px 28px;width:100%;max-width:1400px;}
+    @media (max-width:767px){ .content{padding:18px;} }
+
+    /* Cards */
+    .card{
+      background:var(--surface);
+      backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);
+      border:1px solid var(--hairline);border-radius:var(--r-lg);
+      box-shadow:var(--shadow-md),var(--shadow-inset);overflow:hidden;
+      transition:transform .4s var(--ease-out),box-shadow .4s var(--ease-out);
+    }
+    .card:hover{box-shadow:var(--shadow-lg),var(--shadow-inset);}
+
+    /* Summary cards — pastel tint, not solid */
+    .card-summary{
+      border:1px solid var(--hairline);
+      border-radius:var(--r-lg);
+      padding:18px 20px;
+      box-shadow:var(--shadow-md),var(--shadow-inset);
+      transition:transform .3s var(--ease-spring),box-shadow .3s var(--ease-out);
+      position:relative;overflow:hidden;
+      backdrop-filter:blur(20px);
+    }
+    .card-summary:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg),var(--shadow-inset);}
+    .card-summary .label{font-size:.78rem;font-weight:500;color:var(--ink-500);letter-spacing:.02em;text-transform:uppercase;}
+    .card-summary .value{font-size:2rem;font-weight:700;letter-spacing:-0.03em;margin-top:6px;font-feature-settings:"tnum";color:var(--ink-900);}
+    .card-summary .ico{
+      position:absolute;top:14px;right:16px;
+      width:38px;height:38px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.1rem;
+    }
+    .sum-pending{background:linear-gradient(180deg,rgba(255,159,10,.14),rgba(255,159,10,.04));}
+    .sum-pending .ico{background:rgba(255,159,10,.18);color:#C77700;}
+    .sum-review{background:linear-gradient(180deg,rgba(94,92,230,.14),rgba(94,92,230,.04));}
+    .sum-review .ico{background:rgba(94,92,230,.18);color:#4541C5;}
+    .sum-success{background:linear-gradient(180deg,rgba(48,209,88,.16),rgba(48,209,88,.04));}
+    .sum-success .ico{background:rgba(48,209,88,.2);color:#1F8C3B;}
+    .sum-reject{background:linear-gradient(180deg,rgba(255,69,58,.14),rgba(255,69,58,.04));}
+    .sum-reject .ico{background:rgba(255,69,58,.18);color:#C9302C;}
+
+    /* Buttons */
+    .btn{
+      border-radius:var(--r-pill);font-weight:600;letter-spacing:-0.01em;
+      transition:transform .2s var(--ease-spring),box-shadow .25s var(--ease-out),background .25s ease;
+      border:1px solid transparent;
+    }
+    .btn:active{transform:scale(.97);}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--brand-1),var(--brand-2));border:none;color:#fff;
+      padding:10px 22px;
+      box-shadow:0 8px 20px rgba(10,132,255,.30),inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .btn-primary:hover{background:linear-gradient(135deg,#1A8FFF,#6C6BEE);box-shadow:0 12px 28px rgba(10,132,255,.40);transform:translateY(-1px);color:#fff;}
+    .btn-secondary{background:var(--ink-100);border:none;color:var(--ink-700);}
+    .btn-secondary:hover{background:var(--ink-200);color:var(--ink-900);}
+    .btn-outline-primary{
+      background:var(--surface-strong);border:1px solid var(--hairline-dark);color:var(--brand-1);
+      box-shadow:var(--shadow-xs);
+    }
+    .btn-outline-primary:hover{background:#fff;color:var(--brand-1);border-color:rgba(10,132,255,.35);box-shadow:0 6px 14px rgba(10,132,255,.18);transform:translateY(-1px);}
+
+    /* Form controls */
+    .form-control,.form-select{
+      border-radius:14px;border:1px solid var(--ink-100);
+      background:rgba(255,255,255,.85);padding:11px 14px;font-size:.95rem;
+      transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;
+    }
+    .form-control:focus,.form-select:focus{
+      border-color:var(--brand-1);box-shadow:0 0 0 4px rgba(10,132,255,.18);background:#fff;outline:none;
+    }
+    .form-label{font-weight:500;font-size:.86rem;color:var(--ink-500);margin-bottom:6px;}
+
+    /* DataTable polish */
+    table.dataTable{border-collapse:separate!important;border-spacing:0;}
+    table.dataTable thead th{
+      font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;
+      color:var(--ink-500);border-bottom:1px solid var(--hairline-dark)!important;
+      background:transparent;
+    }
+    table.dataTable tbody td{
+      border-top:1px solid var(--hairline-dark);
+      padding:14px 12px;font-size:.92rem;vertical-align:middle;
+    }
+    table.dataTable tbody tr{transition:background .2s ease;}
+    table.dataTable tbody tr:hover{background:rgba(10,132,255,0.04);}
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select{
+      border-radius:12px;border:1px solid var(--ink-100);padding:6px 12px;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button{
+      border-radius:10px!important;margin:0 2px;border:none!important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current{
+      background:linear-gradient(135deg,var(--brand-1),var(--brand-2))!important;
+      color:#fff!important;border:none!important;
+    }
+
+    /* Badges (tinted) */
+    .badge{font-weight:600;border-radius:var(--r-pill);padding:6px 12px;font-size:.72rem;}
+    .badge.bg-warning{background:rgba(255,159,10,.15)!important;color:#C77700!important;}
+    .badge.bg-primary{background:rgba(10,132,255,.14)!important;color:#006FE6!important;}
+    .badge.bg-success{background:rgba(48,209,88,.16)!important;color:#1F8C3B!important;}
+    .badge.bg-success.bg-gradient{background:linear-gradient(135deg,rgba(48,209,88,.2),rgba(10,132,255,.18))!important;color:#1F8C3B!important;}
+    .badge.bg-danger{background:rgba(255,69,58,.14)!important;color:#C9302C!important;}
+    .badge.bg-secondary{background:var(--ink-100)!important;color:var(--ink-500)!important;}
+
+    /* Sections */
+    .section-page{display:none;}
+    .section-page.active{display:block;animation:pageIn .45s var(--ease-out);}
+    @keyframes pageIn{from{opacity:0;transform:translateY(8px) scale(.995);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+    /* Loading */
+    #loadingOverlay{
+      position:fixed;inset:0;background:rgba(247,247,251,.6);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      z-index:9999;display:none;flex-direction:column;justify-content:center;align-items:center;gap:14px;
+    }
+    .apple-ring{
+      width:46px;height:46px;border-radius:50%;
+      background:conic-gradient(from 0deg,transparent 0deg,var(--brand-1) 270deg,var(--brand-2) 360deg);
+      mask:radial-gradient(closest-side,transparent 62%,#000 64%);
+      -webkit-mask:radial-gradient(closest-side,transparent 62%,#000 64%);
+      animation:ringSpin .9s linear infinite;
+    }
+    @keyframes ringSpin{to{transform:rotate(360deg);}}
+    .loading-text{font-weight:500;color:var(--ink-500);font-size:.9rem;}
+
+    /* Modal Apple-style */
+    .modal-content{
+      border:1px solid var(--hairline);border-radius:var(--r-xl);
+      background:var(--surface-strong);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+      box-shadow:var(--shadow-lg);overflow:hidden;
+    }
+    .modal-header{
+      border-bottom:1px solid var(--hairline-dark);
+      background:linear-gradient(135deg,rgba(10,132,255,.06),rgba(94,92,230,.04));
+      color:var(--ink-900);
+    }
+    .modal-header .btn-close{filter:none;}
+    .modal-title{font-weight:600;letter-spacing:-0.02em;}
+    .modal-footer{border-top:1px solid var(--hairline-dark);}
+
+    /* Mobile topbar */
+    .mobile-bar{
+      background:var(--surface-strong);backdrop-filter:blur(20px);
+      border:1px solid var(--hairline);border-radius:var(--r-lg);
+      box-shadow:var(--shadow-sm);padding:12px 16px;margin-bottom:16px;
+    }
+
+    .text-primary{color:var(--brand-1)!important;}
+    .text-muted{color:var(--ink-300)!important;}
+    .text-success{color:#1F8C3B!important;}
+
+    ::-webkit-scrollbar{width:8px;height:8px;}
+    ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:10px;}
   </style>
 </head>
 <body>
 
   <div id="loadingOverlay">
-    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
-    <div class="mt-3 fw-bold text-primary">กำลังประมวลผล...</div>
+    <div class="apple-ring"></div>
+    <div class="loading-text">กำลังประมวลผล…</div>
   </div>
 
-  <div class="d-flex">
+  <div class="d-flex wrap">
     <!-- Sidebar -->
-    <div class="sidebar d-none d-md-block" style="width: 250px;">
-      <h4 class="text-center py-4 fw-bold border-bottom border-light border-opacity-25">Admin Panel</h4>
-      <nav class="mt-3">
-        <a href="#" class="nav-link active" onclick="switchMenu('dashboard', this)"><i class="bi bi-grid-1x2-fill me-2"></i> ภาพรวม (Dashboard)</a>
-        <a href="#" class="nav-link" onclick="switchMenu('withdraw', this)"><i class="bi bi-wallet2 me-2"></i> จัดการคำขอถอนเงิน</a>
-        <a href="#" class="nav-link" onclick="switchMenu('deposit', this)"><i class="bi bi-cash-stack me-2"></i> บันทึกรับฝากเงิน</a>
+    <div class="sidebar d-none d-md-block">
+      <div class="brand">
+        <div class="brand-mark"><i class="bi bi-shield-lock-fill"></i></div>
+        <div>
+          <div class="brand-text">Mukcoop</div>
+          <div class="brand-sub">Admin Panel</div>
+        </div>
+      </div>
+      <nav>
+        <a href="#" class="nav-link active" onclick="switchMenu('dashboard', this)">
+          <i class="bi bi-grid-1x2-fill"></i> ภาพรวม
+        </a>
+        <a href="#" class="nav-link" onclick="switchMenu('withdraw', this)">
+          <i class="bi bi-wallet2"></i> จัดการคำขอถอนเงิน
+        </a>
+        <a href="#" class="nav-link" onclick="switchMenu('deposit', this)">
+          <i class="bi bi-cash-stack"></i> บันทึกรับฝากเงิน
+        </a>
       </nav>
     </div>
 
     <!-- Main Content -->
     <div class="content">
-      <div class="d-md-none mb-3 bg-white p-3 rounded shadow-sm d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 text-primary fw-bold">Mukcoop Admin</h5>
+      <!-- Mobile select -->
+      <div class="d-md-none mobile-bar d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--brand-1),var(--brand-3));display:flex;align-items:center;justify-content:center;color:#fff;">
+            <i class="bi bi-shield-lock-fill"></i>
+          </div>
+          <h6 class="mb-0 fw-bold">Mukcoop Admin</h6>
+        </div>
         <select class="form-select w-auto" onchange="switchMenu(this.value, null)">
           <option value="dashboard">ภาพรวม</option>
           <option value="withdraw">คำขอถอนเงิน</option>
@@ -55,31 +297,59 @@
 
       <!-- Section: Dashboard -->
       <div id="sec-dashboard" class="section-page active">
-        <h3 class="fw-bold text-primary mb-4">ภาพรวมระบบ</h3>
+        <div class="d-flex justify-content-between align-items-end mb-4">
+          <div>
+            <div class="text-muted" style="font-size:.85rem;">Dashboard</div>
+            <h3 class="fw-bold mb-0" style="letter-spacing:-0.03em;">ภาพรวมระบบ</h3>
+          </div>
+        </div>
+
         <div class="row g-3 mb-4">
           <div class="col-6 col-md-3">
-            <div class="card card-summary bg-primary p-3"><small>รอตรวจสอบ</small><h3 class="fw-bold mb-0" id="countPending">0</h3></div>
+            <div class="card-summary sum-pending">
+              <div class="ico"><i class="bi bi-hourglass-split"></i></div>
+              <div class="label">รอตรวจสอบ</div>
+              <div class="value" id="countPending">0</div>
+            </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card card-summary bg-info p-3"><small>รออนุมัติ</small><h3 class="fw-bold mb-0" id="countReview">0</h3></div>
+            <div class="card-summary sum-review">
+              <div class="ico"><i class="bi bi-clipboard-check"></i></div>
+              <div class="label">รออนุมัติ</div>
+              <div class="value" id="countReview">0</div>
+            </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card card-summary bg-success p-3"><small>อนุมัติ / โอนแล้ว</small><h3 class="fw-bold mb-0" id="countSuccess">0</h3></div>
+            <div class="card-summary sum-success">
+              <div class="ico"><i class="bi bi-check-circle-fill"></i></div>
+              <div class="label">อนุมัติ / โอนแล้ว</div>
+              <div class="value" id="countSuccess">0</div>
+            </div>
           </div>
           <div class="col-6 col-md-3">
-            <div class="card card-summary bg-danger p-3"><small>ไม่อนุมัติ / ยกเลิก</small><h3 class="fw-bold mb-0" id="countReject">0</h3></div>
+            <div class="card-summary sum-reject">
+              <div class="ico"><i class="bi bi-x-circle-fill"></i></div>
+              <div class="label">ไม่อนุมัติ / ยกเลิก</div>
+              <div class="value" id="countReject">0</div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Section: Withdraw -->
       <div id="sec-withdraw" class="section-page">
-        <h3 class="fw-bold text-primary mb-4">รายการคำขอถอนเงิน</h3>
-        <div class="card p-3 shadow-sm border-0 rounded-4">
+        <div class="mb-4">
+          <div class="text-muted" style="font-size:.85rem;">Requests</div>
+          <h3 class="fw-bold mb-0" style="letter-spacing:-0.03em;">รายการคำขอถอนเงิน</h3>
+        </div>
+        <div class="card p-3 p-md-4">
           <div class="table-responsive">
-            <table id="withdrawTable" class="table table-hover align-middle" style="width:100%">
-              <thead class="table-light">
-                <tr><th>วันที่</th><th>เลขที่คำขอ</th><th>รหัสสมาชิก</th><th>ชื่อ-สกุล</th><th>ประเภทบัญชี</th><th>จำนวนเงิน</th><th>สถานะ</th><th>จัดการ</th></tr>
+            <table id="withdrawTable" class="table align-middle" style="width:100%">
+              <thead>
+                <tr>
+                  <th>วันที่</th><th>เลขที่คำขอ</th><th>รหัสสมาชิก</th><th>ชื่อ-สกุล</th>
+                  <th>ประเภทบัญชี</th><th class="text-end">จำนวนเงิน</th><th>สถานะ</th><th>จัดการ</th>
+                </tr>
               </thead>
               <tbody></tbody>
             </table>
@@ -89,19 +359,38 @@
 
       <!-- Section: Deposit -->
       <div id="sec-deposit" class="section-page">
-        <h3 class="fw-bold text-primary mb-4">บันทึกรับฝากเงิน</h3>
-        <div class="card p-4 shadow-sm border-0 rounded-4" style="max-width: 600px;">
+        <div class="mb-4">
+          <div class="text-muted" style="font-size:.85rem;">Deposit</div>
+          <h3 class="fw-bold mb-0" style="letter-spacing:-0.03em;">บันทึกรับฝากเงิน</h3>
+        </div>
+        <div class="card p-4" style="max-width:620px;">
           <form id="depositForm">
-            <div class="mb-3"><label class="form-label">รหัสสมาชิก</label><input type="number" class="form-control" id="dpMemberId" required></div>
-            <div class="mb-3"><label class="form-label">ชื่อ-สกุล สมาชิก</label><input type="text" class="form-control" id="dpFullName" required></div>
+            <div class="mb-3">
+              <label class="form-label">รหัสสมาชิก</label>
+              <input type="number" class="form-control" id="dpMemberId" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">ชื่อ-สกุล สมาชิก</label>
+              <input type="text" class="form-control" id="dpFullName" required>
+            </div>
             <div class="mb-3">
               <label class="form-label">ประเภทบัญชี</label>
-              <select class="form-select" id="dpAccType" required><option value="ออมทรัพย์">ออมทรัพย์</option><option value="ออมทรัพย์พิเศษ">ออมทรัพย์พิเศษ</option></select>
+              <select class="form-select" id="dpAccType" required>
+                <option value="ออมทรัพย์">ออมทรัพย์</option>
+                <option value="ออมทรัพย์พิเศษ">ออมทรัพย์พิเศษ</option>
+              </select>
             </div>
-            <div class="mb-3"><label class="form-label">จำนวนเงินฝาก</label><input type="number" class="form-control" id="dpAmount" required min="1"></div>
             <div class="mb-3">
+              <label class="form-label">จำนวนเงินฝาก</label>
+              <input type="number" class="form-control" id="dpAmount" required min="1">
+            </div>
+            <div class="mb-4">
               <label class="form-label">ช่องทางรับฝาก</label>
-              <select class="form-select" id="dpChannel" required><option value="เงินสด">เงินสด</option><option value="โอนเงิน">โอนเงิน</option><option value="หักเงินเดือน">หักเงินเดือน</option></select>
+              <select class="form-select" id="dpChannel" required>
+                <option value="เงินสด">เงินสด</option>
+                <option value="โอนเงิน">โอนเงิน</option>
+                <option value="หักเงินเดือน">หักเงินเดือน</option>
+              </select>
             </div>
             <button type="submit" class="btn btn-primary w-100">บันทึกรับฝากเงิน</button>
           </form>
@@ -112,16 +401,16 @@
 
   <!-- Modal จัดการสถานะ -->
   <div class="modal fade" id="actionModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title">จัดการคำขอ: <span id="mdReqId"></span></h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-header">
+          <h5 class="modal-title">จัดการคำขอ · <span id="mdReqId" class="text-primary"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="mdRow">
           <div class="mb-3">
-            <label class="form-label fw-bold">เปลี่ยนสถานะเป็น:</label>
+            <label class="form-label">เปลี่ยนสถานะเป็น</label>
             <select class="form-select" id="mdStatus">
               <option value="รออนุมัติ">รออนุมัติ (เอกสารผ่าน)</option>
               <option value="เอกสารไม่ครบ">เอกสารไม่ครบ</option>
@@ -130,8 +419,14 @@
               <option value="โอนเงินแล้ว">โอนเงินแล้ว</option>
             </select>
           </div>
-          <div class="mb-3" id="divComment"><label class="form-label">หมายเหตุ:</label><textarea class="form-control" id="mdComment" rows="2"></textarea></div>
-          <div class="mb-3" id="divTransfer" style="display:none;"><label class="form-label text-success fw-bold">URL สลิปโอนเงิน:</label><input type="text" class="form-control" id="mdSlipUrl"></div>
+          <div class="mb-3" id="divComment">
+            <label class="form-label">หมายเหตุ</label>
+            <textarea class="form-control" id="mdComment" rows="2"></textarea>
+          </div>
+          <div class="mb-3" id="divTransfer" style="display:none;">
+            <label class="form-label" style="color:#1F8C3B;font-weight:600;">URL สลิปโอนเงิน</label>
+            <input type="text" class="form-control" id="mdSlipUrl" placeholder="https://...">
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
@@ -148,18 +443,11 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
 
   <script>
-    // ==========================================
-    // ⚙️ ตั้งค่า API URL ตรงนี้
-    // ==========================================
-    const CONFIG = {
-      API_URL: "https://script.google.com/macros/s/AKfycby0tUwAVVnC3VOp-Y3WD97MPsPo7ZncQQ1gcgcVK-iEJ5uUnp3uYQFbmv2JeHxaLSnF/exec" // เปลี่ยนเป็น Web App URL จาก GAS
-    };
-    // ==========================================
+    const CONFIG = { API_URL: "YOUR_GAS_WEBAPP_URL_HERE" };
 
     let table;
     const adminName = "Admin (Web)";
 
-    // ฟังก์ชันเชื่อมต่อกับ GAS Backend
     async function callAPI(action, payload = {}) {
       try {
         const response = await fetch(`${CONFIG.API_URL}?action=${action}`, {
@@ -170,9 +458,7 @@
         const json = await response.json();
         if (!json.success) throw new Error(json.message);
         return json.data;
-      } catch (error) {
-        throw error;
-      }
+      } catch (error) { throw error; }
     }
 
     $(document).ready(function() {
@@ -195,10 +481,10 @@
       try {
         const data = await callAPI('getAllWithdrawRequests');
         let cPending = 0, cReview = 0, cSuccess = 0, cReject = 0;
-        
+
         if ($.fn.DataTable.isDataTable('#withdrawTable')) $('#withdrawTable').DataTable().destroy();
         const tbody = $('#withdrawTable tbody'); tbody.empty();
-        
+
         data.forEach(item => {
           if(item.status === 'รอตรวจสอบ') cPending++;
           else if(item.status === 'รออนุมัติ') cReview++;
@@ -213,13 +499,25 @@
           if(item.status === 'ไม่อนุมัติ' || item.status === 'เอกสารไม่ครบ') badge = 'bg-danger';
 
           const btnAction = `<button class="btn btn-sm btn-outline-primary" onclick="openModal('${item.row}', '${item.requestId}', '${item.status}')">จัดการ</button>`;
-          tbody.append(`<tr><td>${item.requestDate}</td><td class="text-primary fw-bold">${item.requestId}</td><td>${item.memberId}</td><td>${item.fullName}</td><td>${item.accountType}</td><td class="text-end text-success fw-bold">${Number(item.amount).toLocaleString('th-TH', {minimumFractionDigits: 2})}</td><td><span class="badge ${badge}">${item.status}</span></td><td>${btnAction}</td></tr>`);
+          tbody.append(`<tr>
+            <td>${item.requestDate}</td>
+            <td class="text-primary fw-bold">${item.requestId}</td>
+            <td>${item.memberId}</td>
+            <td>${item.fullName}</td>
+            <td>${item.accountType}</td>
+            <td class="text-end fw-bold" style="letter-spacing:-0.02em;">${Number(item.amount).toLocaleString('th-TH',{minimumFractionDigits:2})}</td>
+            <td><span class="badge ${badge}">${item.status}</span></td>
+            <td>${btnAction}</td>
+          </tr>`);
         });
 
         $('#countPending').text(cPending); $('#countReview').text(cReview);
         $('#countSuccess').text(cSuccess); $('#countReject').text(cReject);
 
-        table = $('#withdrawTable').DataTable({ "language": { "url": "//cdn.datatables.net/plug-ins/1.13.5/i18n/th.json" }, "order": [[0, "desc"]] });
+        table = $('#withdrawTable').DataTable({
+          "language": { "url": "//cdn.datatables.net/plug-ins/1.13.5/i18n/th.json" },
+          "order": [[0, "desc"]]
+        });
       } catch (e) {
         Swal.fire('Error', 'ไม่สามารถโหลดข้อมูลได้', 'error');
       } finally {
@@ -245,7 +543,6 @@
         officerName: adminName,
         transferDate: new Date()
       };
-
       if(payload.status === 'โอนเงินแล้ว' && !payload.transferSlipUrl) return Swal.fire('แจ้งเตือน', 'กรุณาระบุ URL สลิปการโอนเงิน', 'warning');
 
       $('#loadingOverlay').css('display', 'flex');
@@ -270,7 +567,6 @@
         accountType: $('#dpAccType').val(), accountNo: '-', amount: $('#dpAmount').val(),
         depositChannel: $('#dpChannel').val(), officerName: adminName, remark: ''
       };
-
       try {
         const res = await callAPI('createDeposit', payload);
         Swal.fire('สำเร็จ', `บันทึกรายการฝากสำเร็จ เลขที่: ${res.depositId}`, 'success').then(() => document.getElementById('depositForm').reset());

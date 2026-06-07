@@ -3,112 +3,339 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#F7F7FB">
   <title>Mukcoop Saving Online</title>
-  
+
   <!-- CSS Libraries -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
-    /* นำ CSS เดิมมาใส่ไว้ที่นี่ทั้งหมด */
-    :root {
-      --primary-color: #0b3d91; 
-      --secondary-color: #4da6ff; 
-      --bg-light: #f4f6f9; 
-      --text-dark: #333333;
+    /* ===== Mukcoop · Apple-look Design System (inlined) ===== */
+    :root{
+      --brand-1:#0A84FF;--brand-2:#5E5CE6;--brand-3:#BF5AF2;
+      --accent-mint:#30D158;--accent-orange:#FF9F0A;--accent-red:#FF453A;
+      --ink-900:#0B0B0F;--ink-700:#1C1C1E;--ink-500:#3A3A3C;--ink-300:#8E8E93;
+      --ink-200:#C7C7CC;--ink-100:#E5E5EA;--ink-50:#F2F2F7;
+      --surface:rgba(255,255,255,0.72);--surface-strong:rgba(255,255,255,0.88);
+      --hairline:rgba(255,255,255,0.65);--hairline-dark:rgba(0,0,0,0.06);
+      --shadow-xs:0 1px 2px rgba(16,24,40,.04);
+      --shadow-sm:0 2px 8px rgba(16,24,40,.06);
+      --shadow-md:0 8px 24px rgba(16,24,40,.08),0 2px 6px rgba(16,24,40,.04);
+      --shadow-lg:0 20px 60px rgba(16,24,40,.10),0 8px 20px rgba(16,24,40,.05);
+      --shadow-inset:inset 0 1px 0 rgba(255,255,255,.7);
+      --ease-spring:cubic-bezier(.34,1.56,.64,1);
+      --ease-out:cubic-bezier(.22,1,.36,1);
+      --r-md:16px;--r-lg:22px;--r-xl:28px;--r-pill:999px;
     }
-    body { font-family: 'Prompt', sans-serif; background-color: var(--bg-light); color: var(--text-dark); padding-bottom: 70px; -webkit-font-smoothing: antialiased; }
-    .card { border: none; border-radius: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); margin-bottom: 1rem; overflow: hidden; }
-    .btn-primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border: none; border-radius: 50px; padding: 10px 24px; font-weight: 500; transition: all 0.3s ease; }
-    .btn-primary:hover { box-shadow: 0 4px 12px rgba(11, 61, 145, 0.3); transform: translateY(-2px); }
-    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; border-radius: 20px 20px 0 0; }
-    .nav-item { text-align: center; color: #888; text-decoration: none; font-size: 0.8rem; flex: 1; cursor: pointer; }
-    .nav-item i { display: block; font-size: 1.5rem; margin-bottom: 2px; }
-    .nav-item.active { color: var(--primary-color); }
-    .signature-wrapper { border: 2px dashed #ccc; border-radius: 10px; background-color: white; margin-bottom: 10px; }
-    canvas { width: 100%; height: 150px; border-radius: 10px; cursor: crosshair; }
-    .section-page { display: none; }
-    .section-page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    *{-webkit-tap-highlight-color:transparent;}
+    html,body{
+      font-family:'Inter','Prompt',-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;
+      color:var(--ink-900);letter-spacing:-0.01em;
+      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    }
+    body{
+      min-height:100vh;padding-bottom:110px;
+      background:
+        radial-gradient(1200px 600px at 10% -10%,rgba(10,132,255,.18),transparent 60%),
+        radial-gradient(900px 500px at 110% 10%,rgba(191,90,242,.16),transparent 55%),
+        radial-gradient(800px 700px at 50% 110%,rgba(94,92,230,.14),transparent 60%),
+        linear-gradient(180deg,#F7F7FB 0%,#EEF1F7 100%);
+      background-attachment:fixed;
+    }
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    }
+    .container,.bottom-nav,#loadingOverlay{position:relative;z-index:1;}
+
+    h1,h2,h3,h4,h5,h6{letter-spacing:-0.022em;font-weight:600;}
+
+    /* Glass card */
+    .card{
+      background:var(--surface);
+      backdrop-filter:saturate(180%) blur(30px);
+      -webkit-backdrop-filter:saturate(180%) blur(30px);
+      border:1px solid var(--hairline);
+      border-radius:var(--r-lg);
+      box-shadow:var(--shadow-md),var(--shadow-inset);
+      overflow:hidden;
+      transition:transform .4s var(--ease-out),box-shadow .4s var(--ease-out);
+      margin-bottom:1rem;
+    }
+    .card:hover{box-shadow:var(--shadow-lg),var(--shadow-inset);}
+
+    /* Hero balance card */
+    .balance-card{
+      position:relative;color:#fff;border-radius:var(--r-xl);
+      padding:22px 24px;overflow:hidden;
+      box-shadow:0 20px 50px rgba(10,132,255,.30),var(--shadow-inset);
+      background:linear-gradient(135deg,#0A84FF 0%,#5E5CE6 55%,#BF5AF2 100%);
+      transition:transform .5s var(--ease-spring),box-shadow .4s var(--ease-out);
+      margin-bottom:14px;
+    }
+    .balance-card.mint{
+      background:linear-gradient(135deg,#30D158 0%,#0A84FF 100%);
+      box-shadow:0 20px 50px rgba(48,209,88,.25),var(--shadow-inset);
+    }
+    .balance-card::after{
+      content:"";position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(600px 200px at 110% -20%,rgba(255,255,255,.35),transparent 60%);
+    }
+    .balance-card:hover{transform:translateY(-2px);}
+    .balance-card .label{opacity:.85;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;font-weight:500;}
+    .balance-card .amount{font-size:1.85rem;font-weight:700;letter-spacing:-0.03em;margin-top:6px;font-feature-settings:"tnum";}
+    .balance-card .bi{opacity:.85;}
+
+    /* Buttons */
+    .btn{
+      border-radius:var(--r-pill);font-weight:600;letter-spacing:-0.01em;
+      transition:transform .2s var(--ease-spring),box-shadow .25s var(--ease-out),background .25s ease;
+      border:1px solid transparent;
+    }
+    .btn:active{transform:scale(.97);}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--brand-1),var(--brand-2));border:none;color:#fff;
+      padding:12px 24px;
+      box-shadow:0 8px 20px rgba(10,132,255,.30),inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .btn-primary:hover{
+      background:linear-gradient(135deg,#1A8FFF,#6C6BEE);
+      box-shadow:0 12px 28px rgba(10,132,255,.40),inset 0 1px 0 rgba(255,255,255,.3);
+      transform:translateY(-1px);color:#fff;
+    }
+    .btn-primary:focus{box-shadow:0 0 0 4px rgba(10,132,255,.25);}
+    .btn-outline-primary,.btn-outline-secondary,.btn-outline-danger{
+      background:var(--surface-strong);backdrop-filter:blur(20px);
+      border:1px solid var(--hairline-dark);color:var(--ink-700);box-shadow:var(--shadow-xs);
+    }
+    .btn-outline-primary{color:var(--brand-1);}
+    .btn-outline-primary:hover{background:#fff;color:var(--brand-1);border-color:rgba(10,132,255,.35);box-shadow:0 8px 20px rgba(10,132,255,.15);transform:translateY(-1px);}
+    .btn-outline-secondary:hover{background:#fff;color:var(--ink-900);border-color:var(--ink-200);box-shadow:var(--shadow-sm);transform:translateY(-1px);}
+    .btn-outline-danger{color:var(--accent-red);}
+    .btn-outline-danger:hover{background:#fff;border-color:rgba(255,69,58,.4);color:var(--accent-red);box-shadow:0 6px 16px rgba(255,69,58,.18);transform:translateY(-1px);}
+
+    /* Action tile */
+    .action-tile{
+      background:var(--surface);backdrop-filter:blur(20px);
+      border:1px solid var(--hairline);border-radius:var(--r-lg);
+      padding:18px 12px;text-align:center;color:var(--ink-700);cursor:pointer;
+      transition:transform .25s var(--ease-spring),box-shadow .3s var(--ease-out),background .25s ease;
+      box-shadow:var(--shadow-sm);height:100%;
+    }
+    .action-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);background:var(--surface-strong);}
+    .action-tile .icon-wrap{
+      width:46px;height:46px;margin:0 auto 10px;
+      display:flex;align-items:center;justify-content:center;
+      border-radius:14px;font-size:1.4rem;
+      background:linear-gradient(135deg,rgba(10,132,255,.12),rgba(94,92,230,.12));color:var(--brand-1);
+    }
+    .action-tile.alt .icon-wrap{background:linear-gradient(135deg,rgba(94,92,230,.14),rgba(191,90,242,.12));color:var(--brand-2);}
+    .action-tile .title{font-weight:600;font-size:.95rem;letter-spacing:-0.01em;}
+
+    /* Forms */
+    .form-control,.form-select{
+      border-radius:14px;border:1px solid var(--ink-100);
+      background:rgba(255,255,255,.85);padding:12px 14px;font-size:.98rem;
+      transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;
+    }
+    .form-control:focus,.form-select:focus{
+      border-color:var(--brand-1);box-shadow:0 0 0 4px rgba(10,132,255,.18);background:#fff;outline:none;
+    }
+    .form-control-lg{padding:14px 16px;font-size:1.05rem;}
+    .form-control[readonly]{background:var(--ink-50);color:var(--ink-500);}
+    .form-label{font-weight:500;font-size:.88rem;color:var(--ink-500);margin-bottom:6px;}
+    .form-check-input:checked{background-color:var(--brand-1);border-color:var(--brand-1);}
+    .form-check-input:focus{box-shadow:0 0 0 4px rgba(10,132,255,.18);border-color:var(--brand-1);}
+
+    /* Section step heading */
+    .step-num{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:26px;height:26px;border-radius:50%;
+      background:linear-gradient(135deg,var(--brand-1),var(--brand-2));
+      color:#fff;font-size:.78rem;font-weight:600;margin-right:8px;
+      box-shadow:0 4px 10px rgba(10,132,255,.25);
+    }
+
+    /* Bottom Nav (floating glass pill) */
+    .bottom-nav{
+      position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+      width:calc(100% - 24px);max-width:520px;
+      background:rgba(255,255,255,.72);
+      backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);
+      border:1px solid var(--hairline);border-radius:var(--r-pill);
+      box-shadow:0 14px 40px rgba(16,24,40,.12),var(--shadow-inset);
+      display:flex;padding:8px;z-index:1000;
+    }
+    .nav-item{
+      flex:1;text-align:center;color:var(--ink-300);text-decoration:none;
+      font-size:.72rem;font-weight:500;padding:8px 4px;border-radius:var(--r-pill);cursor:pointer;
+      transition:color .25s ease,background .3s var(--ease-out),transform .2s var(--ease-spring);
+    }
+    .nav-item i{display:block;font-size:1.25rem;margin-bottom:2px;transition:transform .3s var(--ease-spring);}
+    .nav-item:hover{color:var(--ink-700);}
+    .nav-item:hover i{transform:translateY(-1px) scale(1.08);}
+    .nav-item.active{
+      color:#fff;background:linear-gradient(135deg,var(--brand-1),var(--brand-2));
+      box-shadow:0 6px 16px rgba(10,132,255,.35);
+    }
+
+    /* Signature */
+    .signature-wrapper{
+      border:1.5px dashed var(--ink-200);border-radius:14px;
+      background:rgba(255,255,255,.7);margin-bottom:8px;
+      transition:border-color .2s ease,background .2s ease;
+    }
+    .signature-wrapper:hover{border-color:var(--brand-1);background:#fff;}
+    canvas{width:100%;height:160px;border-radius:14px;cursor:crosshair;}
+
+    /* Badges */
+    .badge{font-weight:600;border-radius:var(--r-pill);padding:6px 12px;font-size:.74rem;letter-spacing:-0.005em;}
+    .badge.bg-warning{background:rgba(255,159,10,.15)!important;color:#C77700!important;}
+    .badge.bg-primary{background:rgba(10,132,255,.14)!important;color:#006FE6!important;}
+    .badge.bg-success{background:rgba(48,209,88,.16)!important;color:#1F8C3B!important;}
+    .badge.bg-danger{background:rgba(255,69,58,.14)!important;color:#C9302C!important;}
+    .badge.bg-secondary{background:var(--ink-100)!important;color:var(--ink-500)!important;}
+
+    /* Section transitions */
+    .section-page{display:none;}
+    .section-page.active{display:block;animation:pageIn .45s var(--ease-out);}
+    @keyframes pageIn{from{opacity:0;transform:translateY(8px) scale(.995);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+    /* Loading */
+    #loadingOverlay{
+      position:fixed;inset:0;background:rgba(247,247,251,.6);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;
+    }
+    .apple-ring{
+      width:46px;height:46px;border-radius:50%;
+      background:conic-gradient(from 0deg,transparent 0deg,var(--brand-1) 270deg,var(--brand-2) 360deg);
+      mask:radial-gradient(closest-side,transparent 62%,#000 64%);
+      -webkit-mask:radial-gradient(closest-side,transparent 62%,#000 64%);
+      animation:ringSpin .9s linear infinite;
+    }
+    @keyframes ringSpin{to{transform:rotate(360deg);}}
+    .loading-text{font-weight:500;color:var(--ink-500);font-size:.9rem;letter-spacing:-0.01em;}
+
+    .skeleton{
+      background:linear-gradient(90deg,#ECECEF 0%,#F6F6F8 50%,#ECECEF 100%);
+      background-size:200% 100%;animation:shimmer 1.4s linear infinite;border-radius:10px;
+    }
+    @keyframes shimmer{from{background-position:200% 0;}to{background-position:-200% 0;}}
+
+    /* Avatar */
+    .avatar-ring{padding:2px;border-radius:50%;background:linear-gradient(135deg,var(--brand-1),var(--brand-3));display:inline-block;}
+    .avatar-ring img{display:block;border-radius:50%;border:2px solid #fff;}
+
+    .text-primary{color:var(--brand-1)!important;}
+    .text-muted{color:var(--ink-300)!important;}
+    .text-success{color:#1F8C3B!important;}
+
+    /* History row hover */
+    .history-card{transition:transform .25s var(--ease-spring),box-shadow .3s var(--ease-out);}
+    .history-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+
+    .container{max-width:560px;}
   </style>
 </head>
 <body>
 
   <!-- Loading Overlay -->
   <div id="loadingOverlay">
-    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-    <div class="mt-3 fw-bold text-primary">กำลังโหลดข้อมูล...</div>
+    <div class="apple-ring"></div>
+    <div class="loading-text">กำลังโหลดข้อมูล…</div>
   </div>
 
-  <div class="container mt-3">
+  <div class="container mt-3 pt-2">
+
     <!-- Section 1: หน้าผูกบัญชี -->
     <div id="sectionBind" class="section-page">
-      <div class="text-center mb-4 mt-5">
-        <i class="bi bi-shield-lock text-primary" style="font-size: 4rem;"></i>
-        <h3 class="mt-2 text-primary fw-bold">ลงทะเบียนเข้าใช้งาน</h3>
-        <p class="text-muted">กรุณายืนยันตัวตนเพื่อผูกบัญชีสมาชิกสหกรณ์</p>
+      <div class="text-center mb-4 mt-4">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3"
+             style="width:88px;height:88px;border-radius:24px;
+                    background:linear-gradient(135deg,#0A84FF,#5E5CE6);
+                    box-shadow:0 20px 40px rgba(10,132,255,.35),inset 0 1px 0 rgba(255,255,255,.25);">
+          <i class="bi bi-shield-lock-fill text-white" style="font-size:2.4rem;"></i>
+        </div>
+        <h3 class="fw-bold" style="letter-spacing:-0.03em;">ลงทะเบียนเข้าใช้งาน</h3>
+        <p class="text-muted mb-0">ยืนยันตัวตนเพื่อผูกบัญชีสมาชิกสหกรณ์</p>
       </div>
-      <div class="card p-3">
+      <div class="card p-4">
         <form id="bindForm">
           <div class="mb-3">
             <label class="form-label">เลขที่สมาชิก</label>
             <input type="number" class="form-control form-control-lg" id="regMemberId" required placeholder="เช่น 01234">
           </div>
-          <div class="mb-3">
+          <div class="mb-4">
             <label class="form-label">เลขประจำตัวประชาชน (13 หลัก)</label>
-            <input type="number" class="form-control form-control-lg" id="regPID" required placeholder="xxxxxxxxxxxxx">
+            <input type="number" class="form-control form-control-lg" id="regPID" required placeholder="x x x x x x x x x x x x x">
           </div>
-          <button type="submit" class="btn btn-primary w-100 btn-lg mt-2">ยืนยันการผูกบัญชี</button>
+          <button type="submit" class="btn btn-primary w-100 btn-lg">ยืนยันการผูกบัญชี</button>
         </form>
       </div>
     </div>
 
     <!-- Section 2: Dashboard -->
     <div id="sectionDashboard" class="section-page active">
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
         <div>
-          <h5 class="mb-0 fw-bold text-primary">สวัสดี, <span id="displayFullName">กำลังโหลด...</span></h5>
-          <small class="text-muted">เลขสมาชิก: <span id="displayMemberId">-</span></small>
+          <div class="text-muted" style="font-size:.82rem;">ยินดีต้อนรับ</div>
+          <h5 class="mb-0 fw-bold" id="displayFullName" style="letter-spacing:-0.02em;">กำลังโหลด…</h5>
+          <small class="text-muted">เลขสมาชิก · <span id="displayMemberId">-</span></small>
         </div>
-        <img id="profileImg" src="" alt="Profile" class="rounded-circle" width="50" height="50" style="object-fit: cover; display: none;">
+        <span class="avatar-ring">
+          <img id="profileImg" src="" alt="Profile" width="48" height="48" style="object-fit:cover;display:none;">
+        </span>
       </div>
 
-      <div class="card bg-primary text-white mb-3" style="background: linear-gradient(135deg, #0b3d91, #4da6ff) !important;">
-        <div class="card-body">
-          <p class="mb-1">บัญชีออมทรัพย์</p>
-          <h4 class="mb-0 fw-bold" id="displaySavingAcc">-</h4>
+      <div class="balance-card">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="label">บัญชีออมทรัพย์</div>
+            <div class="amount" id="displaySavingAcc">-</div>
+          </div>
+          <i class="bi bi-piggy-bank-fill" style="font-size:1.6rem;"></i>
         </div>
       </div>
-      <div class="card bg-success text-white mb-3" style="background: linear-gradient(135deg, #20c997, #198754) !important;">
-        <div class="card-body">
-          <p class="mb-1">บัญชีออมทรัพย์พิเศษ</p>
-          <h4 class="mb-0 fw-bold" id="displaySpecialSavingAcc">-</h4>
+
+      <div class="balance-card mint">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="label">บัญชีออมทรัพย์พิเศษ</div>
+            <div class="amount" id="displaySpecialSavingAcc">-</div>
+          </div>
+          <i class="bi bi-gem" style="font-size:1.5rem;"></i>
         </div>
       </div>
-      
-      <div class="row g-2">
+
+      <div class="row g-2 mt-3">
         <div class="col-6">
-          <button class="btn btn-outline-primary w-100 py-3 rounded-4" onclick="switchTab('Withdraw')">
-            <i class="bi bi-cash-coin fs-2 d-block mb-1"></i> ยื่นถอนเงิน
-          </button>
+          <div class="action-tile" onclick="switchTab('Withdraw')">
+            <div class="icon-wrap"><i class="bi bi-cash-coin"></i></div>
+            <div class="title">ยื่นถอนเงิน</div>
+          </div>
         </div>
         <div class="col-6">
-          <button class="btn btn-outline-secondary w-100 py-3 rounded-4" onclick="switchTab('History')">
-            <i class="bi bi-clock-history fs-2 d-block mb-1"></i> ประวัติการถอน
-          </button>
+          <div class="action-tile alt" onclick="switchTab('History')">
+            <div class="icon-wrap"><i class="bi bi-clock-history"></i></div>
+            <div class="title">ประวัติการถอน</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Section 3: ยื่นคำขอถอนเงิน -->
     <div id="sectionWithdraw" class="section-page">
-      <h4 class="fw-bold mb-3 text-primary"><i class="bi bi-wallet2"></i> แบบฟอร์มถอนเงิน</h4>
+      <h4 class="fw-bold mb-3 mt-2" style="letter-spacing:-0.03em;">
+        <i class="bi bi-wallet2 me-1"></i> แบบฟอร์มถอนเงิน
+      </h4>
       <form id="withdrawForm">
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold">1. เลือกบัญชีสหกรณ์และจำนวนเงิน</h6>
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">1</span>เลือกบัญชี &amp; จำนวนเงิน</h6>
           <div class="mb-3">
             <select class="form-select" id="wdAccountType" required>
               <option value="" selected disabled>เลือกประเภทบัญชี</option>
@@ -117,64 +344,70 @@
             </select>
           </div>
           <div class="mb-3">
-            <input type="text" class="form-control bg-light" id="wdAccountNo" readonly placeholder="เลขบัญชีจะแสดงอัตโนมัติ">
+            <input type="text" class="form-control" id="wdAccountNo" readonly placeholder="เลขบัญชีจะแสดงอัตโนมัติ">
           </div>
-          <div class="mb-2">
-            <label class="form-label">จำนวนเงินที่ต้องการถอน (สูงสุด 50,000 บาท)</label>
-            <input type="number" class="form-control form-control-lg text-primary fw-bold" id="wdAmount" required min="1" max="50000" placeholder="0.00">
-          </div>
-        </div>
-
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold">2. บัญชีธนาคารรับเงิน (แก้ไขได้)</h6>
-          <div class="mb-2">
-            <input type="text" class="form-control mb-2" id="wdBankName" required placeholder="ชื่อธนาคาร">
-            <input type="number" class="form-control mb-2" id="wdBankAccountNo" required placeholder="เลขที่บัญชีธนาคาร">
-            <input type="text" class="form-control" id="wdBankAccountName" required placeholder="ชื่อบัญชี">
+          <div class="mb-1">
+            <label class="form-label">จำนวนเงินที่ต้องการถอน <span class="text-muted">· สูงสุด 50,000 ฿</span></label>
+            <input type="number" class="form-control form-control-lg fw-bold text-primary" id="wdAmount" required min="1" max="50000" placeholder="0.00">
           </div>
         </div>
 
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold">3. อัปโหลดเอกสาร (ไม่เกิน 5MB/ไฟล์)</h6>
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">2</span>บัญชีธนาคารรับเงิน</h6>
+          <input type="text" class="form-control mb-2" id="wdBankName" required placeholder="ชื่อธนาคาร">
+          <input type="number" class="form-control mb-2" id="wdBankAccountNo" required placeholder="เลขที่บัญชีธนาคาร">
+          <input type="text" class="form-control" id="wdBankAccountName" required placeholder="ชื่อบัญชี">
+        </div>
+
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">3</span>อัปโหลดเอกสาร <span class="text-muted small fw-normal">(≤ 5MB/ไฟล์)</span></h6>
           <div class="mb-2">
-            <label class="form-label text-muted small">1. สำเนาบัตรประชาชน</label>
+            <label class="form-label">สำเนาบัตรประชาชน</label>
             <input class="form-control form-control-sm" type="file" id="fileIDCard" accept="image/*,.pdf" required>
           </div>
           <div class="mb-2">
-            <label class="form-label text-muted small">2. สมุดบัญชีออมทรัพย์สหกรณ์</label>
+            <label class="form-label">สมุดบัญชีออมทรัพย์สหกรณ์</label>
             <input class="form-control form-control-sm" type="file" id="fileCoopBook" accept="image/*,.pdf" required>
           </div>
-          <div class="mb-2">
-            <label class="form-label text-muted small">3. สมุดบัญชีธนาคารรับโอน</label>
+          <div>
+            <label class="form-label">สมุดบัญชีธนาคารรับโอน</label>
             <input class="form-control form-control-sm" type="file" id="fileBankBook" accept="image/*,.pdf" required>
           </div>
         </div>
 
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold">4. ลงลายมือชื่อ</h6>
-          <label class="form-label text-muted small mt-2">ลายมือชื่อเจ้าของบัญชี</label>
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">4</span>ลงลายมือชื่อ</h6>
+          <label class="form-label">ลายมือชื่อเจ้าของบัญชี</label>
           <div class="signature-wrapper"><canvas id="sigOwnerCanvas"></canvas></div>
-          <button type="button" class="btn btn-sm btn-outline-danger w-100 mb-3" onclick="clearSignature(sigOwnerPad)">ล้างลายมือชื่อเจ้าของบัญชี</button>
+          <button type="button" class="btn btn-sm btn-outline-danger w-100 mb-3" onclick="clearSignature(sigOwnerPad)">
+            <i class="bi bi-eraser"></i> ล้างลายมือชื่อเจ้าของบัญชี
+          </button>
 
-          <label class="form-label text-muted small mt-2">ลายมือชื่อผู้รับเงิน</label>
+          <label class="form-label">ลายมือชื่อผู้รับเงิน</label>
           <div class="signature-wrapper"><canvas id="sigReceiverCanvas"></canvas></div>
-          <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="clearSignature(sigReceiverPad)">ล้างลายมือชื่อผู้รับเงิน</button>
+          <button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="clearSignature(sigReceiverPad)">
+            <i class="bi bi-eraser"></i> ล้างลายมือชื่อผู้รับเงิน
+          </button>
         </div>
 
-        <div class="form-check mb-4 mt-2">
+        <div class="form-check mb-4 mt-2 px-3">
           <input class="form-check-input" type="checkbox" id="pdpaCheck" required>
           <label class="form-check-label small text-muted" for="pdpaCheck">
-            ข้าพเจ้ายินยอมให้สหกรณ์ฯ เก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคล เพื่อวัตถุประสงค์ในการดำเนินการถอนเงินตามพ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)
+            ข้าพเจ้ายินยอมให้สหกรณ์ฯ เก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคล เพื่อวัตถุประสงค์ในการดำเนินการถอนเงินตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)
           </label>
         </div>
 
-        <button type="submit" id="btnSubmitWithdraw" class="btn btn-primary w-100 btn-lg mb-4">ยืนยันการส่งคำขอถอนเงิน</button>
+        <button type="submit" id="btnSubmitWithdraw" class="btn btn-primary w-100 btn-lg mb-4">
+          ยืนยันการส่งคำขอถอนเงิน
+        </button>
       </form>
     </div>
 
     <!-- Section 4: ประวัติคำขอถอน -->
     <div id="sectionHistory" class="section-page">
-      <h4 class="fw-bold mb-3 text-primary"><i class="bi bi-clock-history"></i> ประวัติคำขอถอนเงิน</h4>
+      <h4 class="fw-bold mb-3 mt-2" style="letter-spacing:-0.03em;">
+        <i class="bi bi-clock-history me-1"></i> ประวัติคำขอถอนเงิน
+      </h4>
       <div id="historyContainer"></div>
     </div>
   </div>
@@ -182,7 +415,7 @@
   <!-- Bottom Navigation -->
   <div class="bottom-nav" id="bottomNav">
     <div class="nav-item active" onclick="switchTab('Dashboard')" id="navDashboard">
-      <i class="bi bi-house-door"></i> หน้าแรก
+      <i class="bi bi-house-door-fill"></i> หน้าแรก
     </div>
     <div class="nav-item" onclick="switchTab('Withdraw')" id="navWithdraw">
       <i class="bi bi-cash-coin"></i> ถอนเงิน
@@ -199,22 +432,16 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js"></script>
 
-  <!-- Script การทำงานหลัก -->
   <script>
-    // ==========================================
-    // ⚙️ การตั้งค่าที่สำคัญ (แก้ไขตรงนี้)
-    // ==========================================
     const CONFIG = {
-      LIFF_ID: "2008999774-wjOvv4FM", // เปลี่ยนเป็น LIFF ID ของคุณ
-      API_URL: "https://script.google.com/macros/s/AKfycby0tUwAVVnC3VOp-Y3WD97MPsPo7ZncQQ1gcgcVK-iEJ5uUnp3uYQFbmv2JeHxaLSnF/exec" // เปลี่ยนเป็น Web App URL ที่ได้จาก GAS
+      LIFF_ID: "YOUR_LIFF_ID_HERE",
+      API_URL: "YOUR_GAS_WEBAPP_URL_HERE"
     };
 
-    // ==========================================
     let profileData = null;
     let liffProfile = null;
     let sigOwnerPad, sigReceiverPad;
 
-    // ฟังก์ชันเชื่อมต่อกับ GAS Backend
     async function callAPI(action, payload = {}) {
       try {
         const response = await fetch(`${CONFIG.API_URL}?action=${action}`, {
@@ -233,27 +460,18 @@
 
     $(document).ready(async function() {
       initSignaturePads();
-      try {
-        await initLIFF();
-      } catch (e) {
-        console.error(e);
-        hideLoading();
-      }
+      try { await initLIFF(); }
+      catch (e) { console.error(e); hideLoading(); }
     });
 
-    // 1. ตั้งค่า LINE LIFF
     async function initLIFF() {
       if (!CONFIG.LIFF_ID || CONFIG.LIFF_ID === "YOUR_LIFF_ID_HERE") {
         Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งค่า LIFF_ID ในโค้ด', 'error');
-        hideLoading();
-        return;
+        hideLoading(); return;
       }
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+        if (!liff.isLoggedIn()) { liff.login(); return; }
         liffProfile = await liff.getProfile();
         await loadUserProfile(liffProfile.userId);
       } catch (err) {
@@ -263,12 +481,10 @@
       }
     }
 
-    // 2. ดึงโปรไฟล์สมาชิก
     async function loadUserProfile(lineUserId) {
       try {
         showLoading();
         const user = await callAPI('getMemberProfile', { lineUserId: lineUserId });
-        
         if (user) {
           profileData = user;
           $('#displayFullName').text(user.fullName);
@@ -276,11 +492,9 @@
           $('#displaySavingAcc').text(user.savingAccountNo || '-');
           $('#displaySpecialSavingAcc').text(user.specialSavingAccountNo || '-');
           $('#profileImg').attr('src', liffProfile.pictureUrl).show();
-          
           $('#wdBankName').val(user.bankName);
           $('#wdBankAccountNo').val(user.bankAccountNo);
           $('#wdBankAccountName').val(user.bankAccountName);
-          
           switchTab('Dashboard');
         } else {
           switchTab('Bind');
@@ -292,15 +506,14 @@
       }
     }
 
-    // 3. เปลี่ยนหน้า (UI)
     function switchTab(tab) {
       $('.section-page').removeClass('active');
       $('.nav-item').removeClass('active');
-      
       if (tab === 'Dashboard') { $('#sectionDashboard').addClass('active'); $('#navDashboard').addClass('active'); }
       else if (tab === 'Withdraw') { $('#sectionWithdraw').addClass('active'); $('#navWithdraw').addClass('active'); }
       else if (tab === 'History') { $('#sectionHistory').addClass('active'); $('#navHistory').addClass('active'); loadWithdrawHistory(); }
       else if (tab === 'Bind') { $('#sectionBind').addClass('active'); $('#bottomNav').hide(); }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     $('#wdAccountType').change(function() {
@@ -309,7 +522,6 @@
       else if (type === 'ออมทรัพย์พิเศษ') $('#wdAccountNo').val(profileData.specialSavingAccountNo || 'ไม่พบเลขบัญชี');
     });
 
-    // 4. ผูกบัญชี
     $('#bindForm').submit(async function(e) {
       e.preventDefault();
       showLoading();
@@ -326,12 +538,9 @@
         });
       } catch (error) {
         Swal.fire('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดในการผูกบัญชี', 'error');
-      } finally {
-        hideLoading();
-      }
+      } finally { hideLoading(); }
     });
 
-    // 5. ลายเซ็น
     function initSignaturePads() {
       const canvasOwner = document.getElementById('sigOwnerCanvas');
       const canvasReceiver = document.getElementById('sigReceiverCanvas');
@@ -358,12 +567,10 @@
       });
     }
 
-    // 6. ถอนเงินและอัปโหลดไฟล์
     $('#withdrawForm').submit(async function(e) {
       e.preventDefault();
       const amount = parseFloat($('#wdAmount').val());
       const accountNo = $('#wdAccountNo').val();
-      
       if (amount <= 0 || amount > 50000) return Swal.fire('ไม่ถูกต้อง', 'จำนวนเงินต้อง 1 - 50,000 บาท', 'warning');
       if (!accountNo || accountNo === 'ไม่พบเลขบัญชี') return Swal.fire('ไม่ถูกต้อง', 'ไม่พบเลขบัญชี', 'warning');
       if (sigOwnerPad.isEmpty() || sigReceiverPad.isEmpty()) return Swal.fire('ไม่ครบ', 'กรุณาเซ็นชื่อ', 'warning');
@@ -379,18 +586,13 @@
           { file: { name: "OwnerSignature.png", type: "image/png", data: sigOwnerPad.toDataURL() }, type: "ลายมือชื่อเจ้าของบัญชี" },
           { file: { name: "ReceiverSignature.png", type: "image/png", data: sigReceiverPad.toDataURL() }, type: "ลายมือชื่อผู้รับเงิน" }
         ];
-
         const requestData = {
           memberId: profileData.memberId, fullName: profileData.fullName,
           lineUserId: liffProfile.userId, accountType: $('#wdAccountType').val(),
           accountNo: accountNo, amount: amount, bankName: $('#wdBankName').val(),
           bankAccountNo: $('#wdBankAccountNo').val(), bankAccountName: $('#wdBankAccountName').val()
         };
-
-        // ส่งคำขอ
         const reqResult = await callAPI('createWithdrawRequest', requestData);
-        
-        // อัปโหลดไฟล์ทีละไฟล์
         const requestId = reqResult.requestId;
         for (let i = 0; i < filesToUpload.length; i++) {
           const item = filesToUpload[i];
@@ -402,54 +604,57 @@
              });
           }
         }
-
         Swal.fire('สำเร็จ!', 'ส่งคำขอถอนเงินเรียบร้อยแล้ว', 'success').then(() => {
           document.getElementById('withdrawForm').reset();
           clearSignature(sigOwnerPad); clearSignature(sigReceiverPad);
           switchTab('History');
         });
-
       } catch (error) {
         Swal.fire('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดในการส่งคำขอ', 'error');
-      } finally {
-        hideLoading();
-      }
+      } finally { hideLoading(); }
     });
 
-    // 7. โหลดประวัติ
     async function loadWithdrawHistory() {
       if (!profileData) return;
-      $('#historyContainer').html('<div class="text-center mt-4"><div class="spinner-border text-primary"></div></div>');
+      $('#historyContainer').html(`
+        <div class="card p-3 mb-2"><div class="skeleton" style="height:60px;"></div></div>
+        <div class="card p-3 mb-2"><div class="skeleton" style="height:60px;"></div></div>
+        <div class="card p-3 mb-2"><div class="skeleton" style="height:60px;"></div></div>
+      `);
       try {
         const history = await callAPI('getWithdrawHistory', { memberId: profileData.memberId });
-        if (history.length === 0) return $('#historyContainer').html('<div class="alert alert-light text-center border">ยังไม่มีประวัติการทำรายการ</div>');
-        
+        if (history.length === 0) return $('#historyContainer').html(`
+          <div class="card p-5 text-center">
+            <i class="bi bi-inbox text-muted" style="font-size:3rem;"></i>
+            <div class="mt-2 text-muted">ยังไม่มีประวัติการทำรายการ</div>
+          </div>`);
+
         let html = '';
         history.forEach(item => {
           let badgeColor = 'bg-secondary';
-          if(item.status === 'รอตรวจสอบ') badgeColor = 'bg-warning text-dark';
+          if(item.status === 'รอตรวจสอบ') badgeColor = 'bg-warning';
           else if(item.status === 'รออนุมัติ') badgeColor = 'bg-primary';
           else if(item.status === 'อนุมัติแล้ว' || item.status === 'โอนเงินแล้ว') badgeColor = 'bg-success';
           else if(item.status === 'ไม่อนุมัติ') badgeColor = 'bg-danger';
 
           html += `
-            <div class="card p-3 mb-2 shadow-sm">
+            <div class="card history-card p-3 mb-2">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <small class="text-muted"><i class="bi bi-calendar"></i> ${item.requestDate}</small>
+                <small class="text-muted"><i class="bi bi-calendar3"></i> ${item.requestDate}</small>
                 <span class="badge ${badgeColor}">${item.status}</span>
               </div>
               <div class="d-flex justify-content-between align-items-end">
                 <div>
-                  <div class="fw-bold text-primary">${item.requestId}</div>
+                  <div class="fw-bold" style="letter-spacing:-0.01em;">${item.requestId}</div>
                   <small class="text-muted">${item.accountType}</small>
                 </div>
-                <h5 class="fw-bold mb-0 text-success">${item.amount} ฿</h5>
+                <h5 class="fw-bold mb-0" style="letter-spacing:-0.02em;color:var(--ink-900);">${Number(item.amount).toLocaleString('th-TH',{minimumFractionDigits:2})} <span class="text-muted" style="font-size:.85rem;font-weight:500;">฿</span></h5>
               </div>
             </div>`;
         });
         $('#historyContainer').html(html);
       } catch (error) {
-        $('#historyContainer').html('<div class="text-danger">ดึงข้อมูลล้มเหลว</div>');
+        $('#historyContainer').html('<div class="card p-3 text-danger">ดึงข้อมูลล้มเหลว</div>');
       }
     }
 
