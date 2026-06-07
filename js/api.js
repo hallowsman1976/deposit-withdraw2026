@@ -7,7 +7,7 @@ window.APP = window.APP || {};
 /* ---------- 1) CONFIG (แก้ตรงนี้หลัง deploy) ---------- */
 APP.config = {
   // URL ของ GAS web app deployment (ลงท้าย /exec)
-  GAS_URL: 'https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzncfRPHxhmg3IRiLuQAKPLGPrP0qKuzcHgmDRtyjFiYHEDqyG0amRd8sVP1TjgNVkA/exec',
   // LINE LIFF ID จาก LINE Developers Console (LIFF app)
   LIFF_ID: 'REPLACE_WITH_LIFF_ID',
   // ถ้า true → ข้าม LIFF login แล้วใช้ mock token (สำหรับเปิด index.html ตรงๆ ตอน dev)
