@@ -327,9 +327,6 @@
         <a href="#" class="nav-link" onclick="switchMenu('withdraw', this)">
           <i class="bi bi-wallet2"></i> จัดการคำขอถอนเงิน
         </a>
-        <a href="#" class="nav-link" onclick="switchMenu('deposit', this)">
-          <i class="bi bi-cash-stack"></i> บันทึกรับฝากเงิน
-        </a>
         <a href="#" class="nav-link" onclick="switchMenu('import', this)">
           <i class="bi bi-cloud-upload"></i> นำเข้าสมาชิก
         </a>
@@ -349,7 +346,6 @@
         <select class="form-select w-auto" onchange="switchMenu(this.value, null)">
           <option value="dashboard">ภาพรวม</option>
           <option value="withdraw">คำขอถอนเงิน</option>
-          <option value="deposit">บันทึกรับฝากเงิน</option>
           <option value="import">นำเข้าสมาชิก</option>
         </select>
       </div>
@@ -412,119 +408,6 @@
               </thead>
               <tbody></tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section: Deposit -->
-      <div id="sec-deposit" class="section-page">
-        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
-          <div>
-            <div class="text-muted" style="font-size:.85rem;">Deposit</div>
-            <h3 class="fw-bold mb-0" style="letter-spacing:-0.03em;">บันทึกรับฝากเงิน</h3>
-          </div>
-          <div class="segmented" id="dpSegmented">
-            <button type="button" class="seg active" data-type="ออมทรัพย์">
-              <i class="bi bi-piggy-bank"></i> ออมทรัพย์
-            </button>
-            <button type="button" class="seg" data-type="ออมทรัพย์พิเศษ">
-              <i class="bi bi-gem"></i> ออมทรัพย์พิเศษ
-            </button>
-          </div>
-        </div>
-
-        <div class="row g-3">
-          <!-- Form -->
-          <div class="col-12 col-lg-5">
-            <div class="card p-4">
-              <h6 class="fw-bold mb-3">
-                <i class="bi bi-pencil-square me-1"></i>
-                บันทึกรายการ <span id="dpCurrentTypeLabel" class="text-primary">ออมทรัพย์</span>
-              </h6>
-              <form id="depositForm">
-                <input type="hidden" id="dpAccType" value="ออมทรัพย์">
-
-                <div class="mb-3">
-                  <label class="form-label">รหัสสมาชิก</label>
-                  <div class="input-group">
-                    <input type="number" class="form-control" id="dpMemberId" required placeholder="เช่น 00123" autocomplete="off">
-                    <button class="btn btn-outline-primary" type="button" id="btnLookupMember">
-                      <i class="bi bi-search"></i>
-                    </button>
-                  </div>
-                  <div class="small text-muted mt-1" id="dpLookupStatus" style="min-height:1.1em;"></div>
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label">ชื่อ-สกุล สมาชิก</label>
-                  <input type="text" class="form-control" id="dpFullName" required placeholder="ชื่อ นามสกุล">
-                </div>
-
-                <!-- Account picker: shows both accounts of the member, active one highlighted -->
-                <div class="mb-3" id="dpAccountsBox" style="display:none;">
-                  <label class="form-label">เลขบัญชี <span class="text-muted small fw-normal">(เลือกตาม tab ด้านบน)</span></label>
-                  <div class="d-flex flex-column gap-2">
-                    <div class="acc-chip" data-type="ออมทรัพย์">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                          <div class="small text-muted">ออมทรัพย์</div>
-                          <div class="fw-bold" id="dpAccSaving" style="letter-spacing:-0.01em;">-</div>
-                        </div>
-                        <i class="bi bi-check-circle-fill check-icon" style="color:var(--brand-1);"></i>
-                      </div>
-                    </div>
-                    <div class="acc-chip" data-type="ออมทรัพย์พิเศษ">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                          <div class="small text-muted">ออมทรัพย์พิเศษ</div>
-                          <div class="fw-bold" id="dpAccSpecial" style="letter-spacing:-0.01em;">-</div>
-                        </div>
-                        <i class="bi bi-check-circle-fill check-icon" style="color:var(--brand-2);"></i>
-                      </div>
-                    </div>
-                  </div>
-                  <input type="hidden" id="dpAccountNo" value="">
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label">จำนวนเงินฝาก (฿)</label>
-                  <input type="number" class="form-control fw-bold text-primary" id="dpAmount" required min="1" placeholder="0.00">
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">ช่องทางรับฝาก</label>
-                  <select class="form-select" id="dpChannel" required>
-                    <option value="เงินสด">เงินสด</option>
-                    <option value="โอนเงิน">โอนเงิน</option>
-                    <option value="หักเงินเดือน">หักเงินเดือน</option>
-                  </select>
-                </div>
-                <div class="mb-4">
-                  <label class="form-label">หมายเหตุ <span class="text-muted small fw-normal">(ไม่บังคับ)</span></label>
-                  <input type="text" class="form-control" id="dpRemark" placeholder="-">
-                </div>
-                <button type="submit" class="btn btn-primary w-100">
-                  <i class="bi bi-check2-circle"></i> บันทึกรับฝากเงิน
-                </button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Recent history -->
-          <div class="col-12 col-lg-7">
-            <div class="card p-4">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-clock-history me-1"></i>
-                  รายการล่าสุด · <span id="dpHistTypeLabel" class="text-primary">ออมทรัพย์</span>
-                </h6>
-                <button class="btn btn-sm btn-outline-primary" onclick="loadDepositHistory()" type="button">
-                  <i class="bi bi-arrow-clockwise"></i> รีเฟรช
-                </button>
-              </div>
-              <div id="depositHistoryList" style="max-height:520px;overflow-y:auto;">
-                <div class="text-center text-muted small py-3">กำลังโหลด…</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -682,131 +565,6 @@
       $('#sec-' + menu).addClass('active');
       if(el) { $('.nav-link').removeClass('active'); $(el).addClass('active'); }
       if (menu === 'withdraw') loadWithdrawData();
-      if (menu === 'deposit') loadDepositHistory();
-    }
-
-    // ===== Deposit segmented control =====
-    let dpCurrentMember = null; // cache lookup result
-
-    $(document).on('click', '#dpSegmented .seg', function(){
-      const type = $(this).data('type');
-      $('#dpSegmented .seg').removeClass('active');
-      $(this).addClass('active');
-      $('#dpAccType').val(type);
-      $('#dpCurrentTypeLabel, #dpHistTypeLabel').text(type);
-      if (type === 'ออมทรัพย์พิเศษ') $('#dpSegmented').addClass('seg-special');
-      else $('#dpSegmented').removeClass('seg-special');
-      syncAccountChip();
-      loadDepositHistory();
-    });
-
-    // Highlight account chip ตาม tab ปัจจุบัน + set hidden accountNo
-    function syncAccountChip() {
-      const type = $('#dpAccType').val();
-      $('.acc-chip').removeClass('active');
-      $(`.acc-chip[data-type="${type}"]`).addClass('active');
-      if (dpCurrentMember) {
-        const accNo = (type === 'ออมทรัพย์พิเศษ')
-          ? dpCurrentMember.specialSavingAccountNo
-          : dpCurrentMember.savingAccountNo;
-        $('#dpAccountNo').val(accNo || '');
-        // ถ้าประเภทที่เลือกไม่มีเลขบัญชี → เตือน
-        if (!accNo) {
-          $('#dpLookupStatus').html(`<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> สมาชิกนี้ยังไม่มีบัญชี ${type}</span>`);
-        } else {
-          $('#dpLookupStatus').html(`<span class="text-success"><i class="bi bi-check-circle"></i> ${dpCurrentMember.fullName} · ${type}: ${accNo}</span>`);
-        }
-      }
-    }
-
-    // ===== Member lookup =====
-    let lookupTimer = null;
-    $(document).on('input', '#dpMemberId', function(){
-      // debounce auto-lookup เมื่อพิมพ์เสร็จ 600ms
-      clearTimeout(lookupTimer);
-      const v = $(this).val();
-      dpCurrentMember = null;
-      $('#dpAccountsBox').hide();
-      $('#dpAccSaving,#dpAccSpecial').text('-');
-      $('#dpAccountNo').val('');
-      $('#dpLookupStatus').empty();
-      $('.acc-chip').removeClass('active disabled');
-      if (v && v.length >= 3) lookupTimer = setTimeout(lookupMember, 600);
-    });
-    $(document).on('click', '#btnLookupMember', function(){ lookupMember(); });
-    $(document).on('keypress', '#dpMemberId', function(e){ if(e.which === 13){ e.preventDefault(); lookupMember(); }});
-
-    async function lookupMember() {
-      const memberId = $('#dpMemberId').val().trim();
-      if (!memberId) return;
-      $('#dpLookupStatus').html('<span class="text-muted"><span class="apple-ring" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></span> กำลังค้นหา…</span>');
-      try {
-        const m = await callAPI('getMemberById', { memberId: memberId });
-        if (!m) {
-          dpCurrentMember = null;
-          $('#dpFullName').val('');
-          $('#dpAccountsBox').hide();
-          $('#dpLookupStatus').html('<span class="text-danger"><i class="bi bi-x-circle"></i> ไม่พบสมาชิกรหัสนี้</span>');
-          return;
-        }
-        dpCurrentMember = m;
-        $('#dpFullName').val(m.fullName || '');
-        $('#dpAccSaving').text(m.savingAccountNo || '— ไม่มี —');
-        $('#dpAccSpecial').text(m.specialSavingAccountNo || '— ไม่มี —');
-        // disable chip ที่ไม่มีเลขบัญชี
-        $('.acc-chip[data-type="ออมทรัพย์"]').toggleClass('disabled', !m.savingAccountNo);
-        $('.acc-chip[data-type="ออมทรัพย์พิเศษ"]').toggleClass('disabled', !m.specialSavingAccountNo);
-        $('#dpAccountsBox').show();
-        syncAccountChip();
-      } catch (e) {
-        $('#dpLookupStatus').html('<span class="text-danger">ค้นหาล้มเหลว: ' + (e.message||'') + '</span>');
-      }
-    }
-
-    // คลิก chip เพื่อสลับ tab (เผื่อ user อยากเลือกอีกบัญชีโดยกดที่ chip ตรง)
-    $(document).on('click', '.acc-chip', function(){
-      if ($(this).hasClass('disabled')) return;
-      const type = $(this).data('type');
-      $(`#dpSegmented .seg[data-type="${type}"]`).trigger('click');
-    });
-
-    async function loadDepositHistory() {
-      const type = $('#dpAccType').val() || 'ออมทรัพย์';
-      const $list = $('#depositHistoryList');
-      $list.html('<div class="text-center text-muted small py-3"><div class="apple-ring" style="margin:0 auto;"></div><div class="mt-2">กำลังโหลด…</div></div>');
-      try {
-        const rows = await callAPI('getDepositHistory', { accountType: type, limit: 50 });
-        if (!rows || rows.length === 0) {
-          $list.html(`
-            <div class="text-center py-5">
-              <i class="bi bi-inbox text-muted" style="font-size:2.5rem;"></i>
-              <div class="mt-2 text-muted">ยังไม่มีรายการ ${type}</div>
-            </div>`);
-          return;
-        }
-        let html = '';
-        rows.forEach(r => {
-          const amt = Number(r.amount).toLocaleString('th-TH',{minimumFractionDigits:2});
-          html += `
-            <div class="deposit-row">
-              <div style="min-width:0;">
-                <div class="fw-bold" style="letter-spacing:-0.01em;">${r.depositId}</div>
-                <div class="small text-muted text-truncate">
-                  <i class="bi bi-person"></i> ${r.fullName || '-'} · ${r.memberId || '-'}
-                </div>
-                <div class="small text-muted">
-                  <i class="bi bi-calendar3"></i> ${r.depositDate} · ${r.depositChannel || '-'}
-                </div>
-              </div>
-              <div class="text-end ms-2">
-                <div class="amt">${amt} <span style="font-size:.75rem;color:var(--ink-300);font-weight:500;">฿</span></div>
-              </div>
-            </div>`;
-        });
-        $list.html(html);
-      } catch (e) {
-        $list.html('<div class="text-danger small text-center py-3">ดึงข้อมูลล้มเหลว: ' + (e.message||'') + '</div>');
-      }
     }
 
     async function loadWithdrawData() {
@@ -1028,54 +786,6 @@
       XLSX.writeFile(wb, 'member_template.xlsx');
     }
 
-    $('#depositForm').submit(async function(e) {
-      e.preventDefault();
-      const accountType = $('#dpAccType').val();
-      const accountNo = $('#dpAccountNo').val();
-
-      if (!dpCurrentMember) {
-        return Swal.fire('แจ้งเตือน', 'กรุณากดค้นหาสมาชิกก่อน', 'warning');
-      }
-      if (!accountNo) {
-        return Swal.fire('ไม่พบเลขบัญชี', `สมาชิกนี้ไม่มีบัญชี ${accountType}`, 'warning');
-      }
-
-      $('#loadingOverlay').css('display', 'flex');
-      const payload = {
-        memberId: $('#dpMemberId').val(),
-        fullName: $('#dpFullName').val(),
-        accountType: accountType,
-        accountNo: accountNo,
-        amount: $('#dpAmount').val(),
-        depositChannel: $('#dpChannel').val(),
-        officerName: adminName,
-        remark: $('#dpRemark').val() || ''
-      };
-      try {
-        const res = await callAPI('createDeposit', payload);
-        Swal.fire({
-          icon:'success', title:'บันทึกสำเร็จ',
-          html: `<div style="font-size:.95rem;">
-                   เลขที่: <b class="text-primary">${res.depositId}</b><br>
-                   ประเภท: <b>${accountType}</b><br>
-                   <span class="text-muted small">บันทึกในชีต ${res.sheet}</span>
-                 </div>`,
-          timer: 2500, timerProgressBar: true
-        });
-        // reset form ยกเว้น account type
-        $('#dpMemberId,#dpFullName,#dpAmount,#dpRemark').val('');
-        $('#dpChannel').val('เงินสด');
-        $('#dpAccountsBox').hide();
-        $('#dpLookupStatus').empty();
-        $('#dpAccountNo').val('');
-        dpCurrentMember = null;
-        loadDepositHistory();
-      } catch (e) {
-        Swal.fire('Error', e.message || 'เกิดข้อผิดพลาดในการบันทึก', 'error');
-      } finally {
-        $('#loadingOverlay').hide();
-      }
-    });
   </script>
 </body>
 </html>

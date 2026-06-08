@@ -353,19 +353,82 @@
       </div>
 
       <div class="row g-2 mt-3">
-        <div class="col-6">
+        <div class="col-4">
+          <div class="action-tile" onclick="switchTab('Deposit')">
+            <div class="icon-wrap" style="background:linear-gradient(135deg,rgba(48,209,88,.14),rgba(10,132,255,.10));color:#1F8C3B;">
+              <i class="bi bi-arrow-down-circle"></i>
+            </div>
+            <div class="title">ยื่นฝากเงิน</div>
+          </div>
+        </div>
+        <div class="col-4">
           <div class="action-tile" onclick="switchTab('Withdraw')">
             <div class="icon-wrap"><i class="bi bi-cash-coin"></i></div>
             <div class="title">ยื่นถอนเงิน</div>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
           <div class="action-tile alt" onclick="switchTab('History')">
             <div class="icon-wrap"><i class="bi bi-clock-history"></i></div>
-            <div class="title">ประวัติฝาก / ถอน</div>
+            <div class="title">ประวัติ</div>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Section 2.5: ยื่นคำขอฝากเงิน -->
+    <div id="sectionDeposit" class="section-page">
+      <h4 class="fw-bold mb-3 mt-2" style="letter-spacing:-0.03em;">
+        <i class="bi bi-arrow-down-circle me-1"></i> แบบฟอร์มฝากเงิน
+      </h4>
+      <form id="depositForm">
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">1</span>เลือกบัญชีที่จะฝาก</h6>
+          <div class="segmented w-100 mb-2" id="dpSegmentedUser">
+            <button type="button" class="seg active" data-type="ออมทรัพย์">
+              <i class="bi bi-piggy-bank"></i> ออมทรัพย์
+            </button>
+            <button type="button" class="seg" data-type="ออมทรัพย์พิเศษ">
+              <i class="bi bi-gem"></i> พิเศษ
+            </button>
+          </div>
+          <input type="hidden" id="dpUserAccType" value="ออมทรัพย์">
+          <input type="text" class="form-control mt-2" id="dpUserAccNo" readonly placeholder="เลขบัญชีจะแสดงอัตโนมัติ">
+        </div>
+
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">2</span>จำนวนเงิน &amp; ช่องทาง</h6>
+          <div class="mb-3">
+            <label class="form-label">จำนวนเงินที่ฝาก (฿)</label>
+            <input type="number" class="form-control form-control-lg fw-bold text-primary" id="dpUserAmount" required min="1" placeholder="0.00">
+          </div>
+          <div class="mb-1">
+            <label class="form-label">ช่องทาง</label>
+            <select class="form-select" id="dpUserChannel" required>
+              <option value="โอนเงิน">โอนเงิน</option>
+              <option value="เงินสด">เงินสด</option>
+              <option value="หักเงินเดือน">หักเงินเดือน</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">3</span>แนบสลิป <span class="text-muted small fw-normal">(≤ 5MB · รูป/PDF)</span></h6>
+          <input class="form-control form-control-sm" type="file" id="dpUserSlip" accept="image/*,.pdf" required>
+          <div class="mt-3 text-center" id="dpSlipPreviewWrap" style="display:none;">
+            <img id="dpSlipPreview" alt="preview" style="max-width:100%;max-height:300px;border-radius:14px;box-shadow:var(--shadow-sm);">
+          </div>
+        </div>
+
+        <div class="card p-4 mb-3">
+          <label class="form-label">หมายเหตุ <span class="text-muted small fw-normal">(ไม่บังคับ)</span></label>
+          <input type="text" class="form-control" id="dpUserRemark" placeholder="เช่น โอนจากธนาคาร X">
+        </div>
+
+        <button type="submit" id="btnSubmitDeposit" class="btn btn-primary w-100 btn-lg mb-4">
+          <i class="bi bi-check2-circle"></i> ยืนยันการฝากเงิน
+        </button>
+      </form>
     </div>
 
     <!-- Section 3: ยื่นคำขอถอนเงิน -->
@@ -467,8 +530,11 @@
     <div class="nav-item active" onclick="switchTab('Dashboard')" id="navDashboard">
       <i class="bi bi-house-door-fill"></i> หน้าแรก
     </div>
+    <div class="nav-item" onclick="switchTab('Deposit')" id="navDeposit">
+      <i class="bi bi-arrow-down-circle"></i> ฝาก
+    </div>
     <div class="nav-item" onclick="switchTab('Withdraw')" id="navWithdraw">
-      <i class="bi bi-cash-coin"></i> ถอนเงิน
+      <i class="bi bi-arrow-up-circle"></i> ถอน
     </div>
     <div class="nav-item" onclick="switchTab('History')" id="navHistory">
       <i class="bi bi-clock-history"></i> ประวัติ
@@ -560,11 +626,98 @@
       $('.section-page').removeClass('active');
       $('.nav-item').removeClass('active');
       if (tab === 'Dashboard') { $('#sectionDashboard').addClass('active'); $('#navDashboard').addClass('active'); }
+      else if (tab === 'Deposit') { $('#sectionDeposit').addClass('active'); $('#navDeposit').addClass('active'); syncDepositAcc(); }
       else if (tab === 'Withdraw') { $('#sectionWithdraw').addClass('active'); $('#navWithdraw').addClass('active'); }
       else if (tab === 'History') { $('#sectionHistory').addClass('active'); $('#navHistory').addClass('active'); loadHistory(); }
       else if (tab === 'Bind') { $('#sectionBind').addClass('active'); $('#bottomNav').hide(); }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    // ===== User Deposit =====
+    function syncDepositAcc() {
+      if (!profileData) return;
+      const type = $('#dpUserAccType').val();
+      const accNo = (type === 'ออมทรัพย์พิเศษ')
+        ? (profileData.specialSavingAccountNo || 'ไม่พบเลขบัญชี')
+        : (profileData.savingAccountNo || 'ไม่พบเลขบัญชี');
+      $('#dpUserAccNo').val(accNo);
+    }
+
+    $(document).on('click', '#dpSegmentedUser .seg', function(){
+      $('#dpSegmentedUser .seg').removeClass('active');
+      $(this).addClass('active');
+      $('#dpUserAccType').val($(this).data('type'));
+      syncDepositAcc();
+    });
+
+    $('#dpUserSlip').on('change', function(e){
+      const f = e.target.files[0];
+      if (!f) { $('#dpSlipPreviewWrap').hide(); return; }
+      if (f.size > 5 * 1024 * 1024) {
+        $(this).val('');
+        $('#dpSlipPreviewWrap').hide();
+        return Swal.fire('ไฟล์ใหญ่เกิน', 'ขนาดต้องไม่เกิน 5MB', 'warning');
+      }
+      if (f.type.startsWith('image/')) {
+        const url = URL.createObjectURL(f);
+        $('#dpSlipPreview').attr('src', url);
+        $('#dpSlipPreviewWrap').show();
+      } else {
+        $('#dpSlipPreviewWrap').hide();
+      }
+    });
+
+    $('#depositForm').submit(async function(e){
+      e.preventDefault();
+      const amount = parseFloat($('#dpUserAmount').val());
+      const accNo = $('#dpUserAccNo').val();
+      const accType = $('#dpUserAccType').val();
+      const slipFile = $('#dpUserSlip')[0].files[0];
+
+      if (!amount || amount <= 0) return Swal.fire('ไม่ถูกต้อง', 'กรุณากรอกจำนวนเงิน', 'warning');
+      if (!accNo || accNo === 'ไม่พบเลขบัญชี') return Swal.fire('ไม่พบบัญชี', `คุณยังไม่มีบัญชี ${accType}`, 'warning');
+      if (!slipFile) return Swal.fire('กรุณาแนบสลิป', 'ต้องแนบหลักฐานการโอนเงิน', 'warning');
+
+      showLoading();
+      Swal.fire({ title: 'กำลังส่งคำขอ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      try {
+        const slip = await getBase64(slipFile);
+        const payload = {
+          memberId: profileData.memberId,
+          fullName: profileData.fullName,
+          lineUserId: liffProfile.userId,
+          accountType: accType,
+          accountNo: accNo,
+          amount: amount,
+          depositChannel: $('#dpUserChannel').val(),
+          remark: $('#dpUserRemark').val() || '',
+          slipBase64: slip.data,
+          slipFileName: slip.name,
+          slipMimeType: slip.type
+        };
+        const res = await callAPI('createUserDeposit', payload);
+        Swal.fire({
+          icon: 'success',
+          title: 'ส่งคำขอฝากสำเร็จ',
+          html: `<div>เลขที่: <b class="text-primary">${res.depositId}</b></div>
+                 <div class="text-muted small mt-1">รอเจ้าหน้าที่ตรวจสอบสลิป</div>`
+        }).then(() => {
+          document.getElementById('depositForm').reset();
+          $('#dpSlipPreviewWrap').hide();
+          $('#dpSegmentedUser .seg').removeClass('active');
+          $('#dpSegmentedUser .seg[data-type="ออมทรัพย์"]').addClass('active');
+          $('#dpUserAccType').val('ออมทรัพย์');
+          syncDepositAcc();
+          currentHistoryType = 'deposit';
+          switchTab('History');
+        });
+      } catch (error) {
+        Swal.fire('ข้อผิดพลาด', error.message || 'ส่งคำขอล้มเหลว', 'error');
+      } finally {
+        hideLoading();
+      }
+    });
 
     $('#wdAccountType').change(function() {
       const type = $(this).val();
