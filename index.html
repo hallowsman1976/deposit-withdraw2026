@@ -239,6 +239,46 @@
     .history-card{transition:transform .25s var(--ease-spring),box-shadow .3s var(--ease-out);}
     .history-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
 
+    /* Apple-style segmented control (user history) */
+    .segmented{
+      display:inline-flex;padding:4px;border-radius:var(--r-pill);
+      background:rgba(118,118,128,0.12);
+      border:1px solid var(--hairline-dark);
+      backdrop-filter:blur(20px);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    .segmented.w-100{display:flex;}
+    .segmented .seg{
+      flex:1;border:none;background:transparent;
+      padding:9px 18px;border-radius:var(--r-pill);
+      font-weight:600;font-size:.92rem;color:var(--ink-500);letter-spacing:-0.01em;
+      cursor:pointer;transition:all .3s var(--ease-spring);
+    }
+    .segmented .seg:hover{color:var(--ink-900);}
+    .segmented .seg.active{
+      background:#fff;color:var(--brand-1);
+      box-shadow:0 2px 8px rgba(16,24,40,.10),0 1px 2px rgba(16,24,40,.06);
+    }
+
+    /* Deposit chip (green tint) */
+    .tx-card{
+      background:var(--surface);backdrop-filter:blur(20px);
+      border:1px solid var(--hairline);border-radius:var(--r-lg);
+      box-shadow:var(--shadow-sm);
+      padding:14px 16px;margin-bottom:10px;
+      transition:transform .25s var(--ease-spring),box-shadow .3s var(--ease-out);
+    }
+    .tx-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+    .tx-card .tx-amt{font-weight:700;letter-spacing:-0.02em;font-feature-settings:"tnum";}
+    .tx-card.is-deposit .tx-amt{color:#1F8C3B;}
+    .tx-card.is-withdraw .tx-amt{color:var(--accent-red);}
+    .tx-card .tx-icon{
+      width:38px;height:38px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+    }
+    .tx-card.is-deposit .tx-icon{background:rgba(48,209,88,.15);color:#1F8C3B;}
+    .tx-card.is-withdraw .tx-icon{background:rgba(255,69,58,.13);color:var(--accent-red);}
+
     .container{max-width:560px;}
   </style>
 </head>
@@ -322,7 +362,7 @@
         <div class="col-6">
           <div class="action-tile alt" onclick="switchTab('History')">
             <div class="icon-wrap"><i class="bi bi-clock-history"></i></div>
-            <div class="title">ประวัติการถอน</div>
+            <div class="title">ประวัติฝาก / ถอน</div>
           </div>
         </div>
       </div>
@@ -403,11 +443,21 @@
       </form>
     </div>
 
-    <!-- Section 4: ประวัติคำขอถอน -->
+    <!-- Section 4: ประวัติรายการ (ฝาก / ถอน) -->
     <div id="sectionHistory" class="section-page">
       <h4 class="fw-bold mb-3 mt-2" style="letter-spacing:-0.03em;">
-        <i class="bi bi-clock-history me-1"></i> ประวัติคำขอถอนเงิน
+        <i class="bi bi-clock-history me-1"></i> ประวัติรายการ
       </h4>
+
+      <div class="segmented w-100 mb-3" id="histSegmented">
+        <button type="button" class="seg active" data-type="deposit">
+          <i class="bi bi-arrow-down-circle"></i> ฝาก
+        </button>
+        <button type="button" class="seg" data-type="withdraw">
+          <i class="bi bi-arrow-up-circle"></i> ถอน
+        </button>
+      </div>
+
       <div id="historyContainer"></div>
     </div>
   </div>
@@ -511,7 +561,7 @@
       $('.nav-item').removeClass('active');
       if (tab === 'Dashboard') { $('#sectionDashboard').addClass('active'); $('#navDashboard').addClass('active'); }
       else if (tab === 'Withdraw') { $('#sectionWithdraw').addClass('active'); $('#navWithdraw').addClass('active'); }
-      else if (tab === 'History') { $('#sectionHistory').addClass('active'); $('#navHistory').addClass('active'); loadWithdrawHistory(); }
+      else if (tab === 'History') { $('#sectionHistory').addClass('active'); $('#navHistory').addClass('active'); loadHistory(); }
       else if (tab === 'Bind') { $('#sectionBind').addClass('active'); $('#bottomNav').hide(); }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -614,20 +664,78 @@
       } finally { hideLoading(); }
     });
 
-    async function loadWithdrawHistory() {
-      if (!profileData) return;
+    // ===== History (segmented: ฝาก / ถอน) =====
+    let currentHistoryType = 'deposit';
+    $(document).on('click', '#histSegmented .seg', function(){
+      const type = $(this).data('type');
+      if (type === currentHistoryType) return;
+      $('#histSegmented .seg').removeClass('active');
+      $(this).addClass('active');
+      currentHistoryType = type;
+      loadHistory();
+    });
+
+    function loadHistory() {
+      if (currentHistoryType === 'deposit') loadDepositHistory();
+      else loadWithdrawHistory();
+    }
+
+    function renderSkeleton() {
       $('#historyContainer').html(`
         <div class="card p-3 mb-2"><div class="skeleton" style="height:60px;"></div></div>
         <div class="card p-3 mb-2"><div class="skeleton" style="height:60px;"></div></div>
         <div class="card p-3 mb-2"><div class="skeleton" style="height:60px;"></div></div>
       `);
+    }
+    function renderEmpty(text) {
+      $('#historyContainer').html(`
+        <div class="card p-5 text-center">
+          <i class="bi bi-inbox text-muted" style="font-size:3rem;"></i>
+          <div class="mt-2 text-muted">${text}</div>
+        </div>`);
+    }
+
+    async function loadDepositHistory() {
+      if (!profileData) return;
+      renderSkeleton();
+      try {
+        const list = await callAPI('getMemberDeposits', { memberId: profileData.memberId, limit: 100 });
+        if (!list || list.length === 0) return renderEmpty('ยังไม่มีประวัติการฝากเงิน');
+
+        let html = '';
+        list.forEach(item => {
+          const amt = Number(item.amount).toLocaleString('th-TH', {minimumFractionDigits:2});
+          const isSpecial = item.accountType === 'ออมทรัพย์พิเศษ';
+          html += `
+            <div class="tx-card is-deposit">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="tx-icon"><i class="bi bi-arrow-down"></i></div>
+                  <div>
+                    <div class="fw-bold" style="letter-spacing:-0.01em;">${item.depositId}</div>
+                    <small class="text-muted">${item.accountType}${isSpecial ? ' ✨' : ''} · ${item.depositChannel || '-'}</small>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="tx-amt">+${amt} <span class="text-muted" style="font-size:.78rem;font-weight:500;">฿</span></div>
+                  <small class="text-muted"><i class="bi bi-calendar3"></i> ${item.depositDate}</small>
+                </div>
+              </div>
+              ${item.remark ? `<div class="small text-muted mt-1"><i class="bi bi-chat-square-text"></i> ${item.remark}</div>` : ''}
+            </div>`;
+        });
+        $('#historyContainer').html(html);
+      } catch (error) {
+        $('#historyContainer').html('<div class="card p-3 text-danger">ดึงข้อมูลล้มเหลว</div>');
+      }
+    }
+
+    async function loadWithdrawHistory() {
+      if (!profileData) return;
+      renderSkeleton();
       try {
         const history = await callAPI('getWithdrawHistory', { memberId: profileData.memberId });
-        if (history.length === 0) return $('#historyContainer').html(`
-          <div class="card p-5 text-center">
-            <i class="bi bi-inbox text-muted" style="font-size:3rem;"></i>
-            <div class="mt-2 text-muted">ยังไม่มีประวัติการทำรายการ</div>
-          </div>`);
+        if (history.length === 0) return renderEmpty('ยังไม่มีประวัติการถอนเงิน');
 
         let html = '';
         history.forEach(item => {
@@ -637,10 +745,14 @@
           else if(item.status === 'อนุมัติแล้ว' || item.status === 'โอนเงินแล้ว') badgeColor = 'bg-success';
           else if(item.status === 'ไม่อนุมัติ') badgeColor = 'bg-danger';
 
+          const amt = Number(item.amount).toLocaleString('th-TH', {minimumFractionDigits:2});
           html += `
-            <div class="card history-card p-3 mb-2">
+            <div class="tx-card is-withdraw">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <small class="text-muted"><i class="bi bi-calendar3"></i> ${item.requestDate}</small>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="tx-icon"><i class="bi bi-arrow-up"></i></div>
+                  <small class="text-muted"><i class="bi bi-calendar3"></i> ${item.requestDate}</small>
+                </div>
                 <span class="badge ${badgeColor}">${item.status}</span>
               </div>
               <div class="d-flex justify-content-between align-items-end">
@@ -648,7 +760,7 @@
                   <div class="fw-bold" style="letter-spacing:-0.01em;">${item.requestId}</div>
                   <small class="text-muted">${item.accountType}</small>
                 </div>
-                <h5 class="fw-bold mb-0" style="letter-spacing:-0.02em;color:var(--ink-900);">${Number(item.amount).toLocaleString('th-TH',{minimumFractionDigits:2})} <span class="text-muted" style="font-size:.85rem;font-weight:500;">฿</span></h5>
+                <div class="tx-amt">−${amt} <span class="text-muted" style="font-size:.78rem;font-weight:500;">฿</span></div>
               </div>
             </div>`;
         });
