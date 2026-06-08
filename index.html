@@ -319,6 +319,59 @@
       </div>
     </div>
 
+    <!-- Section 1.5: กรอกข้อมูลเพิ่มเติมหลังผูกบัญชี -->
+    <div id="sectionProfileForm" class="section-page">
+      <div class="text-center mb-4 mt-3">
+        <div class="d-inline-flex align-items-center justify-content-center mb-3"
+             style="width:72px;height:72px;border-radius:22px;
+                    background:linear-gradient(135deg,#30D158,#0A84FF);
+                    box-shadow:0 18px 36px rgba(48,209,88,.35),inset 0 1px 0 rgba(255,255,255,.25);">
+          <i class="bi bi-person-vcard-fill text-white" style="font-size:2rem;"></i>
+        </div>
+        <h4 class="fw-bold mb-1" style="letter-spacing:-0.03em;">กรอกข้อมูลเพิ่มเติม</h4>
+        <p class="text-muted small mb-0">เพื่อใช้สำหรับการรับโอนเงิน</p>
+      </div>
+
+      <form id="profileForm">
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">1</span>ข้อมูลติดต่อ</h6>
+          <div class="mb-3">
+            <label class="form-label">เบอร์โทรศัพท์ (10 หลัก)</label>
+            <input type="tel" inputmode="numeric" maxlength="10" class="form-control form-control-lg"
+                   id="pfPhone" required pattern="[0-9]{10}" placeholder="08xxxxxxxx">
+          </div>
+          <div>
+            <label class="form-label">ที่อยู่ / สังกัด</label>
+            <select class="form-select form-control-lg" id="pfAddress" required>
+              <option value="" disabled selected>เลือกที่อยู่…</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card p-4 mb-3">
+          <h6 class="fw-bold mb-3"><span class="step-num">2</span>บัญชีธนาคารรับเงิน</h6>
+          <div class="mb-2">
+            <label class="form-label">ชื่อธนาคาร</label>
+            <select class="form-select" id="pfBankName" required>
+              <option value="" disabled selected>เลือกชื่อธนาคาร…</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">เลขที่บัญชีธนาคาร</label>
+            <input type="number" class="form-control" id="pfBankAccountNo" required placeholder="xxxxxxxxxx">
+          </div>
+          <div>
+            <label class="form-label">ชื่อบัญชี</label>
+            <input type="text" class="form-control" id="pfBankAccountName" required placeholder="ชื่อ-สกุล เจ้าของบัญชี">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 btn-lg mb-4">
+          <i class="bi bi-check2-circle"></i> บันทึกและเข้าใช้งาน
+        </button>
+      </form>
+    </div>
+
     <!-- Section 2: Dashboard -->
     <div id="sectionDashboard" class="section-page active">
       <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
@@ -637,13 +690,22 @@
     async function loadBankList() {
       try {
         const banks = await callAPI('getBankList');
-        const $sel = $('#wdBankName');
-        // เก็บ option แรก (placeholder) แล้ว rebuild
-        $sel.find('option:not(:first)').remove();
-        (banks || []).forEach(b => $sel.append(`<option value="${b}">${b}</option>`));
-      } catch (e) {
-        console.warn('โหลดรายชื่อธนาคารล้มเหลว:', e);
-      }
+        ['#wdBankName', '#pfBankName'].forEach(sel => {
+          const $s = $(sel);
+          if (!$s.length) return;
+          $s.find('option:not(:first)').remove();
+          (banks || []).forEach(b => $s.append(`<option value="${b}">${b}</option>`));
+        });
+      } catch (e) { console.warn('โหลดรายชื่อธนาคารล้มเหลว:', e); }
+    }
+
+    async function loadAddressList() {
+      try {
+        const list = await callAPI('getAddressList');
+        const $s = $('#pfAddress');
+        $s.find('option:not(:first)').remove();
+        (list || []).forEach(a => $s.append(`<option value="${a}">${a}</option>`));
+      } catch (e) { console.warn('โหลดรายการที่อยู่ล้มเหลว:', e); }
     }
 
     function switchTab(tab) {
@@ -654,6 +716,7 @@
       else if (tab === 'Withdraw') { $('#sectionWithdraw').addClass('active'); $('#navWithdraw').addClass('active'); }
       else if (tab === 'History') { $('#sectionHistory').addClass('active'); $('#navHistory').addClass('active'); loadHistory(); }
       else if (tab === 'Bind') { $('#sectionBind').addClass('active'); $('#bottomNav').hide(); }
+      else if (tab === 'ProfileForm') { $('#sectionProfileForm').addClass('active'); $('#bottomNav').hide(); }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -759,12 +822,44 @@
           pid: $('#regPID').val()
         };
         const res = await callAPI('bindMember', payload);
-        Swal.fire('สำเร็จ!', res.message, 'success').then(() => {
-          $('#bottomNav').show();
-          loadUserProfile(liffProfile.userId);
-        });
+        // โหลด address + bank dropdowns คู่ขนาน แล้วเด้งไปฟอร์มกรอกข้อมูลเพิ่มเติม
+        await Promise.all([loadAddressList(), loadBankList()]);
+        Swal.fire({
+          icon: 'success', title: 'ผูกบัญชีสำเร็จ',
+          text: 'กรุณากรอกข้อมูลเพิ่มเติมเพื่อใช้งานระบบ',
+          timer: 1800, timerProgressBar: true
+        }).then(() => switchTab('ProfileForm'));
       } catch (error) {
         Swal.fire('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดในการผูกบัญชี', 'error');
+      } finally { hideLoading(); }
+    });
+
+    // ===== Profile form (หลังผูกบัญชี) =====
+    $('#profileForm').submit(async function(e) {
+      e.preventDefault();
+      const phone = $('#pfPhone').val().trim();
+      if (!/^[0-9]{10}$/.test(phone)) {
+        return Swal.fire('เบอร์ไม่ถูกต้อง', 'กรุณากรอกเบอร์โทร 10 หลัก', 'warning');
+      }
+      const payload = {
+        lineUserId: liffProfile.userId,
+        phone: phone,
+        address: $('#pfAddress').val(),
+        bankName: $('#pfBankName').val(),
+        bankAccountNo: $('#pfBankAccountNo').val(),
+        bankAccountName: $('#pfBankAccountName').val().trim()
+      };
+      showLoading();
+      try {
+        await callAPI('updateMemberAfterBind', payload);
+        Swal.fire({
+          icon: 'success', title: 'บันทึกข้อมูลเรียบร้อย',
+          timer: 1500, timerProgressBar: true, showConfirmButton: false
+        });
+        $('#bottomNav').show();
+        await loadUserProfile(liffProfile.userId);
+      } catch (error) {
+        Swal.fire('ข้อผิดพลาด', error.message || 'บันทึกล้มเหลว', 'error');
       } finally { hideLoading(); }
     });
 
