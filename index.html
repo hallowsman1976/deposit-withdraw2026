@@ -457,7 +457,9 @@
 
         <div class="card p-4 mb-3">
           <h6 class="fw-bold mb-3"><span class="step-num">2</span>บัญชีธนาคารรับเงิน</h6>
-          <input type="text" class="form-control mb-2" id="wdBankName" required placeholder="ชื่อธนาคาร">
+          <select class="form-select mb-2" id="wdBankName" required>
+            <option value="" disabled selected>เลือกชื่อธนาคาร…</option>
+          </select>
           <input type="number" class="form-control mb-2" id="wdBankAccountNo" required placeholder="เลขที่บัญชีธนาคาร">
           <input type="text" class="form-control" id="wdBankAccountName" required placeholder="ชื่อบัญชี">
         </div>
@@ -600,7 +602,10 @@
     async function loadUserProfile(lineUserId) {
       try {
         showLoading();
-        const user = await callAPI('getMemberProfile', { lineUserId: lineUserId });
+        const [user] = await Promise.all([
+          callAPI('getMemberProfile', { lineUserId: lineUserId }),
+          loadBankList()  // โหลด dropdown ธนาคารคู่ขนาน
+        ]);
         if (user) {
           profileData = user;
           $('#displayFullName').text(user.fullName);
@@ -608,7 +613,14 @@
           $('#displaySavingAcc').text(user.savingAccountNo || '-');
           $('#displaySpecialSavingAcc').text(user.specialSavingAccountNo || '-');
           $('#profileImg').attr('src', liffProfile.pictureUrl).show();
-          $('#wdBankName').val(user.bankName);
+          // pre-select ธนาคารของเดิมจาก Member sheet ถ้ามี
+          if (user.bankName) {
+            // ถ้าธนาคารในโปรไฟล์ไม่อยู่ใน list → ใส่ option เพิ่มชั่วคราว
+            if ($(`#wdBankName option[value="${user.bankName}"]`).length === 0) {
+              $('#wdBankName').append(`<option value="${user.bankName}">${user.bankName}</option>`);
+            }
+            $('#wdBankName').val(user.bankName);
+          }
           $('#wdBankAccountNo').val(user.bankAccountNo);
           $('#wdBankAccountName').val(user.bankAccountName);
           switchTab('Dashboard');
@@ -619,6 +631,18 @@
         Swal.fire('ข้อผิดพลาด', 'ดึงข้อมูลล้มเหลว', 'error');
       } finally {
         hideLoading();
+      }
+    }
+
+    async function loadBankList() {
+      try {
+        const banks = await callAPI('getBankList');
+        const $sel = $('#wdBankName');
+        // เก็บ option แรก (placeholder) แล้ว rebuild
+        $sel.find('option:not(:first)').remove();
+        (banks || []).forEach(b => $sel.append(`<option value="${b}">${b}</option>`));
+      } catch (e) {
+        console.warn('โหลดรายชื่อธนาคารล้มเหลว:', e);
       }
     }
 
