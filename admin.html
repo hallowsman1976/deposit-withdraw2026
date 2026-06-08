@@ -269,6 +269,27 @@
     }
     .segmented.seg-special .seg.active{ color:var(--brand-2); }
 
+    /* Account chip (member has 2 accounts) */
+    .acc-chip{
+      padding:12px 14px;border-radius:14px;
+      background:rgba(255,255,255,.7);
+      border:1.5px solid var(--ink-100);
+      transition:all .25s var(--ease-out);
+    }
+    .acc-chip .check-icon{opacity:0;transform:scale(.6);transition:all .25s var(--ease-spring);}
+    .acc-chip.active{
+      background:linear-gradient(135deg,rgba(10,132,255,.06),rgba(94,92,230,.06));
+      border-color:var(--brand-1);
+      box-shadow:0 6px 16px rgba(10,132,255,.15);
+    }
+    .acc-chip.active[data-type="ออมทรัพย์พิเศษ"]{
+      background:linear-gradient(135deg,rgba(94,92,230,.06),rgba(191,90,242,.06));
+      border-color:var(--brand-2);
+      box-shadow:0 6px 16px rgba(94,92,230,.15);
+    }
+    .acc-chip.active .check-icon{opacity:1;transform:scale(1);}
+    .acc-chip.disabled{opacity:.45;background:var(--ink-50);}
+
     /* Deposit history list */
     .deposit-row{
       display:flex;justify-content:space-between;align-items:center;
@@ -425,12 +446,46 @@
 
                 <div class="mb-3">
                   <label class="form-label">รหัสสมาชิก</label>
-                  <input type="number" class="form-control" id="dpMemberId" required placeholder="เช่น 00123">
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="dpMemberId" required placeholder="เช่น 00123" autocomplete="off">
+                    <button class="btn btn-outline-primary" type="button" id="btnLookupMember">
+                      <i class="bi bi-search"></i>
+                    </button>
+                  </div>
+                  <div class="small text-muted mt-1" id="dpLookupStatus" style="min-height:1.1em;"></div>
                 </div>
+
                 <div class="mb-3">
                   <label class="form-label">ชื่อ-สกุล สมาชิก</label>
                   <input type="text" class="form-control" id="dpFullName" required placeholder="ชื่อ นามสกุล">
                 </div>
+
+                <!-- Account picker: shows both accounts of the member, active one highlighted -->
+                <div class="mb-3" id="dpAccountsBox" style="display:none;">
+                  <label class="form-label">เลขบัญชี <span class="text-muted small fw-normal">(เลือกตาม tab ด้านบน)</span></label>
+                  <div class="d-flex flex-column gap-2">
+                    <div class="acc-chip" data-type="ออมทรัพย์">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <div class="small text-muted">ออมทรัพย์</div>
+                          <div class="fw-bold" id="dpAccSaving" style="letter-spacing:-0.01em;">-</div>
+                        </div>
+                        <i class="bi bi-check-circle-fill check-icon" style="color:var(--brand-1);"></i>
+                      </div>
+                    </div>
+                    <div class="acc-chip" data-type="ออมทรัพย์พิเศษ">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <div class="small text-muted">ออมทรัพย์พิเศษ</div>
+                          <div class="fw-bold" id="dpAccSpecial" style="letter-spacing:-0.01em;">-</div>
+                        </div>
+                        <i class="bi bi-check-circle-fill check-icon" style="color:var(--brand-2);"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="dpAccountNo" value="">
+                </div>
+
                 <div class="mb-3">
                   <label class="form-label">จำนวนเงินฝาก (฿)</label>
                   <input type="number" class="form-control fw-bold text-primary" id="dpAmount" required min="1" placeholder="0.00">
@@ -631,16 +686,88 @@
     }
 
     // ===== Deposit segmented control =====
+    let dpCurrentMember = null; // cache lookup result
+
     $(document).on('click', '#dpSegmented .seg', function(){
       const type = $(this).data('type');
       $('#dpSegmented .seg').removeClass('active');
       $(this).addClass('active');
       $('#dpAccType').val(type);
       $('#dpCurrentTypeLabel, #dpHistTypeLabel').text(type);
-      // tint segmented control for special savings
       if (type === 'ออมทรัพย์พิเศษ') $('#dpSegmented').addClass('seg-special');
       else $('#dpSegmented').removeClass('seg-special');
+      syncAccountChip();
       loadDepositHistory();
+    });
+
+    // Highlight account chip ตาม tab ปัจจุบัน + set hidden accountNo
+    function syncAccountChip() {
+      const type = $('#dpAccType').val();
+      $('.acc-chip').removeClass('active');
+      $(`.acc-chip[data-type="${type}"]`).addClass('active');
+      if (dpCurrentMember) {
+        const accNo = (type === 'ออมทรัพย์พิเศษ')
+          ? dpCurrentMember.specialSavingAccountNo
+          : dpCurrentMember.savingAccountNo;
+        $('#dpAccountNo').val(accNo || '');
+        // ถ้าประเภทที่เลือกไม่มีเลขบัญชี → เตือน
+        if (!accNo) {
+          $('#dpLookupStatus').html(`<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> สมาชิกนี้ยังไม่มีบัญชี ${type}</span>`);
+        } else {
+          $('#dpLookupStatus').html(`<span class="text-success"><i class="bi bi-check-circle"></i> ${dpCurrentMember.fullName} · ${type}: ${accNo}</span>`);
+        }
+      }
+    }
+
+    // ===== Member lookup =====
+    let lookupTimer = null;
+    $(document).on('input', '#dpMemberId', function(){
+      // debounce auto-lookup เมื่อพิมพ์เสร็จ 600ms
+      clearTimeout(lookupTimer);
+      const v = $(this).val();
+      dpCurrentMember = null;
+      $('#dpAccountsBox').hide();
+      $('#dpAccSaving,#dpAccSpecial').text('-');
+      $('#dpAccountNo').val('');
+      $('#dpLookupStatus').empty();
+      $('.acc-chip').removeClass('active disabled');
+      if (v && v.length >= 3) lookupTimer = setTimeout(lookupMember, 600);
+    });
+    $(document).on('click', '#btnLookupMember', function(){ lookupMember(); });
+    $(document).on('keypress', '#dpMemberId', function(e){ if(e.which === 13){ e.preventDefault(); lookupMember(); }});
+
+    async function lookupMember() {
+      const memberId = $('#dpMemberId').val().trim();
+      if (!memberId) return;
+      $('#dpLookupStatus').html('<span class="text-muted"><span class="apple-ring" style="width:14px;height:14px;display:inline-block;vertical-align:middle;"></span> กำลังค้นหา…</span>');
+      try {
+        const m = await callAPI('getMemberById', { memberId: memberId });
+        if (!m) {
+          dpCurrentMember = null;
+          $('#dpFullName').val('');
+          $('#dpAccountsBox').hide();
+          $('#dpLookupStatus').html('<span class="text-danger"><i class="bi bi-x-circle"></i> ไม่พบสมาชิกรหัสนี้</span>');
+          return;
+        }
+        dpCurrentMember = m;
+        $('#dpFullName').val(m.fullName || '');
+        $('#dpAccSaving').text(m.savingAccountNo || '— ไม่มี —');
+        $('#dpAccSpecial').text(m.specialSavingAccountNo || '— ไม่มี —');
+        // disable chip ที่ไม่มีเลขบัญชี
+        $('.acc-chip[data-type="ออมทรัพย์"]').toggleClass('disabled', !m.savingAccountNo);
+        $('.acc-chip[data-type="ออมทรัพย์พิเศษ"]').toggleClass('disabled', !m.specialSavingAccountNo);
+        $('#dpAccountsBox').show();
+        syncAccountChip();
+      } catch (e) {
+        $('#dpLookupStatus').html('<span class="text-danger">ค้นหาล้มเหลว: ' + (e.message||'') + '</span>');
+      }
+    }
+
+    // คลิก chip เพื่อสลับ tab (เผื่อ user อยากเลือกอีกบัญชีโดยกดที่ chip ตรง)
+    $(document).on('click', '.acc-chip', function(){
+      if ($(this).hasClass('disabled')) return;
+      const type = $(this).data('type');
+      $(`#dpSegmented .seg[data-type="${type}"]`).trigger('click');
     });
 
     async function loadDepositHistory() {
@@ -903,13 +1030,22 @@
 
     $('#depositForm').submit(async function(e) {
       e.preventDefault();
-      $('#loadingOverlay').css('display', 'flex');
       const accountType = $('#dpAccType').val();
+      const accountNo = $('#dpAccountNo').val();
+
+      if (!dpCurrentMember) {
+        return Swal.fire('แจ้งเตือน', 'กรุณากดค้นหาสมาชิกก่อน', 'warning');
+      }
+      if (!accountNo) {
+        return Swal.fire('ไม่พบเลขบัญชี', `สมาชิกนี้ไม่มีบัญชี ${accountType}`, 'warning');
+      }
+
+      $('#loadingOverlay').css('display', 'flex');
       const payload = {
         memberId: $('#dpMemberId').val(),
         fullName: $('#dpFullName').val(),
         accountType: accountType,
-        accountNo: '-',
+        accountNo: accountNo,
         amount: $('#dpAmount').val(),
         depositChannel: $('#dpChannel').val(),
         officerName: adminName,
@@ -929,6 +1065,10 @@
         // reset form ยกเว้น account type
         $('#dpMemberId,#dpFullName,#dpAmount,#dpRemark').val('');
         $('#dpChannel').val('เงินสด');
+        $('#dpAccountsBox').hide();
+        $('#dpLookupStatus').empty();
+        $('#dpAccountNo').val('');
+        dpCurrentMember = null;
         loadDepositHistory();
       } catch (e) {
         Swal.fire('Error', e.message || 'เกิดข้อผิดพลาดในการบันทึก', 'error');
