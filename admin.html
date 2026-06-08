@@ -246,6 +246,40 @@
 
     ::-webkit-scrollbar{width:8px;height:8px;}
     ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:10px;}
+
+    /* Apple-style segmented control */
+    .segmented{
+      display:inline-flex;padding:4px;border-radius:var(--r-pill);
+      background:rgba(118,118,128,0.12);
+      border:1px solid var(--hairline-dark);
+      backdrop-filter:blur(20px);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    .segmented .seg{
+      border:none;background:transparent;
+      padding:8px 22px;border-radius:var(--r-pill);
+      font-weight:600;font-size:.9rem;color:var(--ink-500);letter-spacing:-0.01em;
+      cursor:pointer;
+      transition:all .3s var(--ease-spring);
+    }
+    .segmented .seg:hover{color:var(--ink-900);}
+    .segmented .seg.active{
+      background:#fff;color:var(--brand-1);
+      box-shadow:0 2px 8px rgba(16,24,40,.10),0 1px 2px rgba(16,24,40,.06);
+    }
+    .segmented.seg-special .seg.active{ color:var(--brand-2); }
+
+    /* Deposit history list */
+    .deposit-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 16px;border-radius:14px;
+      background:rgba(255,255,255,.6);
+      border:1px solid var(--hairline-dark);
+      margin-bottom:8px;
+      transition:transform .2s var(--ease-spring),box-shadow .25s var(--ease-out);
+    }
+    .deposit-row:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm);}
+    .deposit-row .amt{font-weight:700;letter-spacing:-0.02em;color:#1F8C3B;font-feature-settings:"tnum";}
   </style>
 </head>
 <body>
@@ -363,41 +397,80 @@
 
       <!-- Section: Deposit -->
       <div id="sec-deposit" class="section-page">
-        <div class="mb-4">
-          <div class="text-muted" style="font-size:.85rem;">Deposit</div>
-          <h3 class="fw-bold mb-0" style="letter-spacing:-0.03em;">บันทึกรับฝากเงิน</h3>
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+          <div>
+            <div class="text-muted" style="font-size:.85rem;">Deposit</div>
+            <h3 class="fw-bold mb-0" style="letter-spacing:-0.03em;">บันทึกรับฝากเงิน</h3>
+          </div>
+          <div class="segmented" id="dpSegmented">
+            <button type="button" class="seg active" data-type="ออมทรัพย์">
+              <i class="bi bi-piggy-bank"></i> ออมทรัพย์
+            </button>
+            <button type="button" class="seg" data-type="ออมทรัพย์พิเศษ">
+              <i class="bi bi-gem"></i> ออมทรัพย์พิเศษ
+            </button>
+          </div>
         </div>
-        <div class="card p-4" style="max-width:620px;">
-          <form id="depositForm">
-            <div class="mb-3">
-              <label class="form-label">รหัสสมาชิก</label>
-              <input type="number" class="form-control" id="dpMemberId" required>
+
+        <div class="row g-3">
+          <!-- Form -->
+          <div class="col-12 col-lg-5">
+            <div class="card p-4">
+              <h6 class="fw-bold mb-3">
+                <i class="bi bi-pencil-square me-1"></i>
+                บันทึกรายการ <span id="dpCurrentTypeLabel" class="text-primary">ออมทรัพย์</span>
+              </h6>
+              <form id="depositForm">
+                <input type="hidden" id="dpAccType" value="ออมทรัพย์">
+
+                <div class="mb-3">
+                  <label class="form-label">รหัสสมาชิก</label>
+                  <input type="number" class="form-control" id="dpMemberId" required placeholder="เช่น 00123">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">ชื่อ-สกุล สมาชิก</label>
+                  <input type="text" class="form-control" id="dpFullName" required placeholder="ชื่อ นามสกุล">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">จำนวนเงินฝาก (฿)</label>
+                  <input type="number" class="form-control fw-bold text-primary" id="dpAmount" required min="1" placeholder="0.00">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">ช่องทางรับฝาก</label>
+                  <select class="form-select" id="dpChannel" required>
+                    <option value="เงินสด">เงินสด</option>
+                    <option value="โอนเงิน">โอนเงิน</option>
+                    <option value="หักเงินเดือน">หักเงินเดือน</option>
+                  </select>
+                </div>
+                <div class="mb-4">
+                  <label class="form-label">หมายเหตุ <span class="text-muted small fw-normal">(ไม่บังคับ)</span></label>
+                  <input type="text" class="form-control" id="dpRemark" placeholder="-">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="bi bi-check2-circle"></i> บันทึกรับฝากเงิน
+                </button>
+              </form>
             </div>
-            <div class="mb-3">
-              <label class="form-label">ชื่อ-สกุล สมาชิก</label>
-              <input type="text" class="form-control" id="dpFullName" required>
+          </div>
+
+          <!-- Recent history -->
+          <div class="col-12 col-lg-7">
+            <div class="card p-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">
+                  <i class="bi bi-clock-history me-1"></i>
+                  รายการล่าสุด · <span id="dpHistTypeLabel" class="text-primary">ออมทรัพย์</span>
+                </h6>
+                <button class="btn btn-sm btn-outline-primary" onclick="loadDepositHistory()" type="button">
+                  <i class="bi bi-arrow-clockwise"></i> รีเฟรช
+                </button>
+              </div>
+              <div id="depositHistoryList" style="max-height:520px;overflow-y:auto;">
+                <div class="text-center text-muted small py-3">กำลังโหลด…</div>
+              </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label">ประเภทบัญชี</label>
-              <select class="form-select" id="dpAccType" required>
-                <option value="ออมทรัพย์">ออมทรัพย์</option>
-                <option value="ออมทรัพย์พิเศษ">ออมทรัพย์พิเศษ</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">จำนวนเงินฝาก</label>
-              <input type="number" class="form-control" id="dpAmount" required min="1">
-            </div>
-            <div class="mb-4">
-              <label class="form-label">ช่องทางรับฝาก</label>
-              <select class="form-select" id="dpChannel" required>
-                <option value="เงินสด">เงินสด</option>
-                <option value="โอนเงิน">โอนเงิน</option>
-                <option value="หักเงินเดือน">หักเงินเดือน</option>
-              </select>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">บันทึกรับฝากเงิน</button>
-          </form>
+          </div>
         </div>
       </div>
 
@@ -554,6 +627,59 @@
       $('#sec-' + menu).addClass('active');
       if(el) { $('.nav-link').removeClass('active'); $(el).addClass('active'); }
       if (menu === 'withdraw') loadWithdrawData();
+      if (menu === 'deposit') loadDepositHistory();
+    }
+
+    // ===== Deposit segmented control =====
+    $(document).on('click', '#dpSegmented .seg', function(){
+      const type = $(this).data('type');
+      $('#dpSegmented .seg').removeClass('active');
+      $(this).addClass('active');
+      $('#dpAccType').val(type);
+      $('#dpCurrentTypeLabel, #dpHistTypeLabel').text(type);
+      // tint segmented control for special savings
+      if (type === 'ออมทรัพย์พิเศษ') $('#dpSegmented').addClass('seg-special');
+      else $('#dpSegmented').removeClass('seg-special');
+      loadDepositHistory();
+    });
+
+    async function loadDepositHistory() {
+      const type = $('#dpAccType').val() || 'ออมทรัพย์';
+      const $list = $('#depositHistoryList');
+      $list.html('<div class="text-center text-muted small py-3"><div class="apple-ring" style="margin:0 auto;"></div><div class="mt-2">กำลังโหลด…</div></div>');
+      try {
+        const rows = await callAPI('getDepositHistory', { accountType: type, limit: 50 });
+        if (!rows || rows.length === 0) {
+          $list.html(`
+            <div class="text-center py-5">
+              <i class="bi bi-inbox text-muted" style="font-size:2.5rem;"></i>
+              <div class="mt-2 text-muted">ยังไม่มีรายการ ${type}</div>
+            </div>`);
+          return;
+        }
+        let html = '';
+        rows.forEach(r => {
+          const amt = Number(r.amount).toLocaleString('th-TH',{minimumFractionDigits:2});
+          html += `
+            <div class="deposit-row">
+              <div style="min-width:0;">
+                <div class="fw-bold" style="letter-spacing:-0.01em;">${r.depositId}</div>
+                <div class="small text-muted text-truncate">
+                  <i class="bi bi-person"></i> ${r.fullName || '-'} · ${r.memberId || '-'}
+                </div>
+                <div class="small text-muted">
+                  <i class="bi bi-calendar3"></i> ${r.depositDate} · ${r.depositChannel || '-'}
+                </div>
+              </div>
+              <div class="text-end ms-2">
+                <div class="amt">${amt} <span style="font-size:.75rem;color:var(--ink-300);font-weight:500;">฿</span></div>
+              </div>
+            </div>`;
+        });
+        $list.html(html);
+      } catch (e) {
+        $list.html('<div class="text-danger small text-center py-3">ดึงข้อมูลล้มเหลว: ' + (e.message||'') + '</div>');
+      }
     }
 
     async function loadWithdrawData() {
@@ -778,14 +904,32 @@
     $('#depositForm').submit(async function(e) {
       e.preventDefault();
       $('#loadingOverlay').css('display', 'flex');
+      const accountType = $('#dpAccType').val();
       const payload = {
-        memberId: $('#dpMemberId').val(), fullName: $('#dpFullName').val(),
-        accountType: $('#dpAccType').val(), accountNo: '-', amount: $('#dpAmount').val(),
-        depositChannel: $('#dpChannel').val(), officerName: adminName, remark: ''
+        memberId: $('#dpMemberId').val(),
+        fullName: $('#dpFullName').val(),
+        accountType: accountType,
+        accountNo: '-',
+        amount: $('#dpAmount').val(),
+        depositChannel: $('#dpChannel').val(),
+        officerName: adminName,
+        remark: $('#dpRemark').val() || ''
       };
       try {
         const res = await callAPI('createDeposit', payload);
-        Swal.fire('สำเร็จ', `บันทึกรายการฝากสำเร็จ เลขที่: ${res.depositId}`, 'success').then(() => document.getElementById('depositForm').reset());
+        Swal.fire({
+          icon:'success', title:'บันทึกสำเร็จ',
+          html: `<div style="font-size:.95rem;">
+                   เลขที่: <b class="text-primary">${res.depositId}</b><br>
+                   ประเภท: <b>${accountType}</b><br>
+                   <span class="text-muted small">บันทึกในชีต ${res.sheet}</span>
+                 </div>`,
+          timer: 2500, timerProgressBar: true
+        });
+        // reset form ยกเว้น account type
+        $('#dpMemberId,#dpFullName,#dpAmount,#dpRemark').val('');
+        $('#dpChannel').val('เงินสด');
+        loadDepositHistory();
       } catch (e) {
         Swal.fire('Error', e.message || 'เกิดข้อผิดพลาดในการบันทึก', 'error');
       } finally {
