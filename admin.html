@@ -327,6 +327,9 @@
         <a href="#" class="nav-link" onclick="switchMenu('withdraw', this)">
           <i class="bi bi-wallet2"></i> จัดการคำขอถอนเงิน
         </a>
+        <a href="#" class="nav-link" onclick="switchMenu('deposit', this)">
+          <i class="bi bi-arrow-down-circle"></i> จัดการคำขอฝากเงิน
+        </a>
         <a href="#" class="nav-link" onclick="switchMenu('import', this)">
           <i class="bi bi-cloud-upload"></i> นำเข้าสมาชิก
         </a>
@@ -346,6 +349,7 @@
         <select class="form-select w-auto" onchange="switchMenu(this.value, null)">
           <option value="dashboard">ภาพรวม</option>
           <option value="withdraw">คำขอถอนเงิน</option>
+          <option value="deposit">คำขอฝากเงิน</option>
           <option value="import">นำเข้าสมาชิก</option>
         </select>
       </div>
@@ -404,6 +408,37 @@
                 <tr>
                   <th>วันที่</th><th>เลขที่คำขอ</th><th>รหัสสมาชิก</th><th>ชื่อ-สกุล</th>
                   <th>ประเภทบัญชี</th><th class="text-end">จำนวนเงิน</th><th>สถานะ</th><th>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Deposit Requests (Admin manage) -->
+      <div id="sec-deposit" class="section-page">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+          <div>
+            <div class="text-muted" style="font-size:.85rem;">Deposit Requests</div>
+            <h3 class="fw-bold mb-0" style="letter-spacing:-0.03em;">จัดการคำขอฝากเงิน</h3>
+          </div>
+          <div class="segmented" id="dpFilter">
+            <button type="button" class="seg active" data-filter="all">ทั้งหมด</button>
+            <button type="button" class="seg" data-filter="รอตรวจสอบ">รอตรวจสอบ</button>
+            <button type="button" class="seg" data-filter="ตรวจสอบแล้ว">ตรวจสอบแล้ว</button>
+            <button type="button" class="seg" data-filter="ไม่อนุมัติ">ไม่อนุมัติ</button>
+          </div>
+        </div>
+
+        <div class="card p-3 p-md-4">
+          <div class="table-responsive">
+            <table id="depositTable" class="table align-middle" style="width:100%">
+              <thead>
+                <tr>
+                  <th>วันที่</th><th>เลขที่</th><th>รหัสสมาชิก</th><th>ชื่อ-สกุล</th>
+                  <th>ประเภท</th><th class="text-end">จำนวนเงิน</th><th>ช่องทาง</th>
+                  <th>สลิป</th><th>สถานะ</th><th>จัดการ</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -526,6 +561,68 @@
     </div>
   </div>
 
+  <!-- Modal จัดการคำขอฝาก -->
+  <div class="modal fade" id="depositActionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">จัดการคำขอฝาก · <span id="dpaReqId" class="text-primary"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="small text-muted">สมาชิก</div>
+              <div class="fw-bold mb-2" id="dpaMember">-</div>
+
+              <div class="small text-muted">ประเภทบัญชี · เลขบัญชี</div>
+              <div class="fw-bold mb-2" id="dpaAcc">-</div>
+
+              <div class="small text-muted">จำนวนเงิน</div>
+              <div class="fw-bold mb-2" style="font-size:1.5rem;letter-spacing:-0.02em;color:#1F8C3B;" id="dpaAmount">-</div>
+
+              <div class="small text-muted">ช่องทาง · วันที่</div>
+              <div class="fw-bold mb-2" id="dpaMeta">-</div>
+
+              <div class="small text-muted">หมายเหตุเดิม</div>
+              <div class="small" id="dpaOldRemark" style="white-space:pre-wrap;color:var(--ink-500);">-</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="small text-muted mb-1">หลักฐานสลิป</div>
+              <div id="dpaSlipWrap" class="text-center" style="background:var(--ink-50);border-radius:14px;padding:8px;min-height:200px;">
+                <div class="text-muted small py-5">ไม่มีสลิป</div>
+              </div>
+              <a id="dpaSlipLink" href="#" target="_blank" class="btn btn-sm btn-outline-primary w-100 mt-2" style="display:none;">
+                <i class="bi bi-box-arrow-up-right"></i> เปิดสลิปในแท็บใหม่
+              </a>
+            </div>
+          </div>
+
+          <hr>
+          <input type="hidden" id="dpaSheet"><input type="hidden" id="dpaRow">
+          <div class="mb-3">
+            <label class="form-label fw-bold">เปลี่ยนสถานะเป็น</label>
+            <select class="form-select" id="dpaStatus">
+              <option value="ตรวจสอบแล้ว">ตรวจสอบแล้ว (รับเงินถูกต้อง)</option>
+              <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+              <option value="ไม่อนุมัติ">ไม่อนุมัติ (สลิปไม่ถูกต้อง)</option>
+            </select>
+          </div>
+          <div class="mb-1">
+            <label class="form-label">หมายเหตุ <span class="text-muted small fw-normal">(จะถูกต่อท้ายพร้อม timestamp)</span></label>
+            <textarea class="form-control" id="dpaComment" rows="2" placeholder="ระบุเหตุผล / หมายเหตุ..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+          <button type="button" class="btn btn-primary" onclick="saveDepositAction()">
+            <i class="bi bi-check2-circle"></i> บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
@@ -565,6 +662,132 @@
       $('#sec-' + menu).addClass('active');
       if(el) { $('.nav-link').removeClass('active'); $(el).addClass('active'); }
       if (menu === 'withdraw') loadWithdrawData();
+      if (menu === 'deposit') loadDepositRequests();
+    }
+
+    // ===== Deposit Requests (Admin) =====
+    let depositTable = null;
+    let allDepositRows = [];
+    let currentDepFilter = 'all';
+
+    $(document).on('click', '#dpFilter .seg', function(){
+      $('#dpFilter .seg').removeClass('active');
+      $(this).addClass('active');
+      currentDepFilter = $(this).data('filter');
+      renderDepositTable();
+    });
+
+    async function loadDepositRequests() {
+      $('#loadingOverlay').css('display', 'flex');
+      try {
+        allDepositRows = await callAPI('getAllDepositRequests') || [];
+        renderDepositTable();
+      } catch (e) {
+        Swal.fire('Error', 'โหลดคำขอฝากล้มเหลว: ' + (e.message||''), 'error');
+      } finally {
+        $('#loadingOverlay').hide();
+      }
+    }
+
+    function renderDepositTable() {
+      if ($.fn.DataTable.isDataTable('#depositTable')) $('#depositTable').DataTable().destroy();
+      const tbody = $('#depositTable tbody').empty();
+
+      const rows = (currentDepFilter === 'all')
+        ? allDepositRows
+        : allDepositRows.filter(r => r.status === currentDepFilter);
+
+      rows.forEach(item => {
+        let badge = 'bg-secondary';
+        if(item.status === 'รอตรวจสอบ') badge = 'bg-warning';
+        else if(item.status === 'ตรวจสอบแล้ว') badge = 'bg-success';
+        else if(item.status === 'ไม่อนุมัติ') badge = 'bg-danger';
+
+        const slip = item.slipUrl
+          ? `<a href="${item.slipUrl}" target="_blank" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();"><i class="bi bi-image"></i></a>`
+          : `<span class="text-muted small">-</span>`;
+
+        const dataAttr = `data-sheet="${item.sheet}" data-row="${item.row}" data-id="${item.depositId}"`;
+        const amt = Number(item.amount).toLocaleString('th-TH',{minimumFractionDigits:2});
+
+        tbody.append(`<tr ${dataAttr}>
+          <td>${item.depositDate}</td>
+          <td class="text-primary fw-bold">${item.depositId}</td>
+          <td>${item.memberId}</td>
+          <td>${item.fullName || '-'}</td>
+          <td>${item.accountType}</td>
+          <td class="text-end fw-bold" style="color:#1F8C3B;letter-spacing:-0.02em;">${amt}</td>
+          <td>${item.depositChannel || '-'}</td>
+          <td>${slip}</td>
+          <td><span class="badge ${badge}">${item.status}</span></td>
+          <td><button class="btn btn-sm btn-outline-primary" onclick="openDepositModal('${item.sheet}', ${item.row})">จัดการ</button></td>
+        </tr>`);
+      });
+
+      depositTable = $('#depositTable').DataTable({
+        "language": { "url": "//cdn.datatables.net/plug-ins/1.13.5/i18n/th.json" },
+        "order": [[0, "desc"]]
+      });
+    }
+
+    function openDepositModal(sheet, row) {
+      const item = allDepositRows.find(r => r.sheet === sheet && r.row === row);
+      if (!item) return;
+
+      $('#dpaSheet').val(item.sheet);
+      $('#dpaRow').val(item.row);
+      $('#dpaReqId').text(item.depositId);
+      $('#dpaMember').text(`${item.fullName || '-'} · ${item.memberId}`);
+      $('#dpaAcc').text(`${item.accountType} · ${item.accountNo || '-'}`);
+      $('#dpaAmount').text(Number(item.amount).toLocaleString('th-TH',{minimumFractionDigits:2}) + ' ฿');
+      $('#dpaMeta').text(`${item.depositChannel || '-'} · ${item.depositDate}`);
+      $('#dpaOldRemark').text(item.remark || '-');
+      $('#dpaStatus').val(item.status === 'รอตรวจสอบ' ? 'ตรวจสอบแล้ว' : item.status);
+      $('#dpaComment').val('');
+
+      // slip preview — convert Drive URL → embeddable preview
+      const $wrap = $('#dpaSlipWrap');
+      const $link = $('#dpaSlipLink');
+      if (item.slipUrl) {
+        // ดึง file id จาก Drive URL: https://drive.google.com/file/d/XXXXX/view
+        const m = item.slipUrl.match(/\/file\/d\/([^/]+)/);
+        const fileId = m ? m[1] : null;
+        if (fileId) {
+          $wrap.html(`<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w800" alt="slip"
+                       style="max-width:100%;max-height:380px;border-radius:10px;object-fit:contain;"
+                       onerror="this.outerHTML='<div class=&quot;text-muted small py-5&quot;>โหลดภาพไม่ได้ กรุณาเปิดในแท็บใหม่</div>'">`);
+        } else {
+          $wrap.html('<div class="text-muted small py-5">เปิดสลิปในแท็บใหม่เพื่อดู</div>');
+        }
+        $link.attr('href', item.slipUrl).show();
+      } else {
+        $wrap.html('<div class="text-muted small py-5">ไม่มีสลิป</div>');
+        $link.hide();
+      }
+
+      new bootstrap.Modal(document.getElementById('depositActionModal')).show();
+    }
+
+    async function saveDepositAction() {
+      const payload = {
+        sheet: $('#dpaSheet').val(),
+        row: parseInt($('#dpaRow').val()),
+        depositId: $('#dpaReqId').text(),
+        status: $('#dpaStatus').val(),
+        comment: $('#dpaComment').val(),
+        officerName: adminName
+      };
+      $('#loadingOverlay').css('display', 'flex');
+      bootstrap.Modal.getInstance(document.getElementById('depositActionModal')).hide();
+      try {
+        await callAPI('updateDepositStatus', payload);
+        Swal.fire({ icon:'success', title:'อัปเดตสถานะเรียบร้อย', timer:1500, showConfirmButton:false });
+        loadDepositRequests();
+      } catch (e) {
+        Swal.fire('Error', e.message || 'บันทึกล้มเหลว', 'error');
+      } finally {
+        $('#loadingOverlay').hide();
+      }
     }
 
     async function loadWithdrawData() {
