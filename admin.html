@@ -275,6 +275,9 @@
         <a href="#" class="nav-link" onclick="switchMenu('deposit', this)">
           <i class="bi bi-cash-stack"></i> บันทึกรับฝากเงิน
         </a>
+        <a href="#" class="nav-link" onclick="switchMenu('import', this)">
+          <i class="bi bi-cloud-upload"></i> นำเข้าสมาชิก
+        </a>
       </nav>
     </div>
 
@@ -292,6 +295,7 @@
           <option value="dashboard">ภาพรวม</option>
           <option value="withdraw">คำขอถอนเงิน</option>
           <option value="deposit">บันทึกรับฝากเงิน</option>
+          <option value="import">นำเข้าสมาชิก</option>
         </select>
       </div>
 
@@ -396,6 +400,81 @@
           </form>
         </div>
       </div>
+
+      <!-- Section: Import Members -->
+      <div id="sec-import" class="section-page">
+        <div class="mb-4">
+          <div class="text-muted" style="font-size:.85rem;">Data Import</div>
+          <h3 class="fw-bold mb-0" style="letter-spacing:-0.03em;">นำเข้าสมาชิกจาก Excel / CSV</h3>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-lg-7">
+            <div class="card p-4">
+              <h6 class="fw-bold mb-3"><i class="bi bi-upload me-1"></i> 1. เลือกไฟล์</h6>
+
+              <label for="impFile" class="dropzone d-block text-center p-4 mb-3"
+                     style="border:1.5px dashed var(--ink-200);border-radius:18px;background:rgba(255,255,255,.6);
+                            cursor:pointer;transition:all .25s var(--ease-out);">
+                <i class="bi bi-file-earmark-spreadsheet" style="font-size:2.4rem;color:var(--brand-1);"></i>
+                <div class="mt-2 fw-bold" id="impFileName">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</div>
+                <div class="text-muted small mt-1">รองรับ .xlsx, .xls, .csv (≤ 5MB)</div>
+                <input type="file" id="impFile" accept=".xlsx,.xls,.csv" hidden>
+              </label>
+
+              <div class="mb-3">
+                <label class="form-label">โหมดการนำเข้า</label>
+                <select id="impMode" class="form-select">
+                  <option value="upsert">อัปเซิร์ต (มี memberId อยู่แล้ว = อัปเดต, ไม่มี = เพิ่มใหม่)</option>
+                  <option value="append">เพิ่มต่อท้ายเสมอ (อาจซ้ำ)</option>
+                  <option value="replace">ล้างทั้งหมดแล้วเขียนใหม่ (ระวัง!)</option>
+                </select>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary flex-fill" onclick="downloadTemplate()">
+                  <i class="bi bi-download"></i> ดาวน์โหลด Template
+                </button>
+                <button class="btn btn-primary flex-fill" id="btnDoImport" onclick="doImport()" disabled>
+                  <i class="bi bi-cloud-arrow-up"></i> นำเข้าข้อมูล
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-5">
+            <div class="card p-4">
+              <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-1"></i> หัวคอลัมน์ที่ต้องการ</h6>
+              <div class="small" style="color:var(--ink-500);line-height:1.9;">
+                <code>memberId</code>, <code>pid</code>, <code>fullName</code>,
+                <code>phone</code>, <code>address</code>,
+                <code>savingAccountNo</code>, <code>specialSavingAccountNo</code>,
+                <code>bankName</code>, <code>bankAccountNo</code>, <code>bankAccountName</code>,
+                <code>status</code>
+              </div>
+              <hr>
+              <div class="small text-muted">
+                ใส่หัวตารางในแถวแรก ระบบจะแมตช์ชื่อคอลัมน์อัตโนมัติ (ไม่สนตัวพิมพ์ใหญ่/เล็ก)<br>
+                ฟิลด์ที่จำเป็นขั้นต่ำ: <b>memberId</b> และ <b>pid</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-3 p-md-4 mt-3" id="impPreviewCard" style="display:none;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0"><i class="bi bi-table me-1"></i> 2. ตัวอย่างข้อมูล <span class="badge bg-primary ms-1" id="impRowCount">0</span></h6>
+            <button class="btn btn-sm btn-outline-primary" onclick="resetImport()"><i class="bi bi-x-lg"></i> ล้าง</button>
+          </div>
+          <div class="table-responsive" style="max-height:400px;">
+            <table class="table table-sm align-middle" id="impPreviewTable" style="font-size:.85rem;">
+              <thead><tr></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -441,6 +520,7 @@
   <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
     const CONFIG = { API_URL: "https://script.google.com/macros/s/AKfycby0tUwAVVnC3VOp-Y3WD97MPsPo7ZncQQ1gcgcVK-iEJ5uUnp3uYQFbmv2JeHxaLSnF/exec" };
@@ -557,6 +637,142 @@
       } finally {
         $('#loadingOverlay').hide();
       }
+    }
+
+    // ============================================================
+    //  Import Members (XLSX / CSV)
+    // ============================================================
+    const MEMBER_FIELDS = [
+      'memberId','pid','fullName','phone','address',
+      'savingAccountNo','specialSavingAccountNo',
+      'bankName','bankAccountNo','bankAccountName','status'
+    ];
+    let importParsedRows = []; // normalized rows ready to send
+
+    // Dropzone wiring
+    $(document).on('change', '#impFile', function(e){ handleImportFile(e.target.files[0]); });
+    $(document).on('dragover', '.dropzone', function(e){
+      e.preventDefault(); $(this).css({borderColor:'var(--brand-1)', background:'rgba(10,132,255,.05)'});
+    });
+    $(document).on('dragleave drop', '.dropzone', function(e){
+      e.preventDefault(); $(this).css({borderColor:'var(--ink-200)', background:'rgba(255,255,255,.6)'});
+    });
+    $(document).on('drop', '.dropzone', function(e){
+      e.preventDefault();
+      const f = e.originalEvent.dataTransfer.files[0];
+      if (f) { $('#impFile')[0].files = e.originalEvent.dataTransfer.files; handleImportFile(f); }
+    });
+
+    function handleImportFile(file){
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) return Swal.fire('ไฟล์ใหญ่เกินไป', 'ขนาดต้องไม่เกิน 5MB', 'warning');
+      $('#impFileName').text(file.name);
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = new Uint8Array(ev.target.result);
+          const wb = XLSX.read(data, { type:'array' });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          // raw JSON with header row inferred
+          const rawRows = XLSX.utils.sheet_to_json(sheet, { defval:'', raw:false });
+          if (!rawRows.length) return Swal.fire('ไฟล์ว่าง', 'ไม่พบข้อมูลในชีตแรก', 'warning');
+
+          // Build header-key map (case-insensitive, trim)
+          const keyMap = {}; // lowerKey -> canonical field
+          MEMBER_FIELDS.forEach(f => keyMap[f.toLowerCase()] = f);
+
+          importParsedRows = rawRows.map(r => {
+            const out = {};
+            Object.keys(r).forEach(k => {
+              const canon = keyMap[String(k).trim().toLowerCase()];
+              if (canon) out[canon] = String(r[k]).trim();
+            });
+            return out;
+          }).filter(r => r.memberId && r.pid); // require both
+
+          if (!importParsedRows.length) {
+            return Swal.fire('ข้อมูลไม่ถูกต้อง', 'ไม่พบแถวที่มี memberId และ pid ครบ — ตรวจชื่อหัวคอลัมน์อีกครั้ง', 'warning');
+          }
+
+          renderImportPreview(importParsedRows);
+          $('#btnDoImport').prop('disabled', false);
+        } catch (err) {
+          Swal.fire('อ่านไฟล์ล้มเหลว', err.message, 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderImportPreview(rows){
+      const $thead = $('#impPreviewTable thead tr').empty();
+      const $tbody = $('#impPreviewTable tbody').empty();
+      MEMBER_FIELDS.forEach(f => $thead.append(`<th>${f}</th>`));
+
+      const previewLimit = 50;
+      rows.slice(0, previewLimit).forEach(r => {
+        let tr = '<tr>';
+        MEMBER_FIELDS.forEach(f => tr += `<td>${(r[f] || '').toString().replace(/</g,'&lt;')}</td>`);
+        tr += '</tr>';
+        $tbody.append(tr);
+      });
+      if (rows.length > previewLimit) {
+        $tbody.append(`<tr><td colspan="${MEMBER_FIELDS.length}" class="text-center text-muted">… อีก ${rows.length - previewLimit} แถว</td></tr>`);
+      }
+      $('#impRowCount').text(rows.length + ' แถว');
+      $('#impPreviewCard').show();
+    }
+
+    function resetImport(){
+      importParsedRows = [];
+      $('#impFile').val('');
+      $('#impFileName').text('ลากไฟล์มาวาง หรือคลิกเพื่อเลือก');
+      $('#impPreviewCard').hide();
+      $('#btnDoImport').prop('disabled', true);
+    }
+
+    async function doImport(){
+      if (!importParsedRows.length) return Swal.fire('ไม่มีข้อมูล', 'กรุณาเลือกไฟล์ก่อน', 'warning');
+      const mode = $('#impMode').val();
+
+      const confirm = await Swal.fire({
+        title: `ยืนยันการนำเข้า ${importParsedRows.length} รายการ?`,
+        text: mode === 'replace' ? '⚠ โหมด replace จะลบข้อมูล Member เดิมทั้งหมด!' : `โหมด: ${mode}`,
+        icon: mode === 'replace' ? 'warning' : 'question',
+        showCancelButton: true,
+        confirmButtonText: 'นำเข้า', cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#0A84FF'
+      });
+      if (!confirm.isConfirmed) return;
+
+      $('#loadingOverlay').css('display','flex');
+      try {
+        const res = await callAPI('importMembers', { rows: importParsedRows, mode: mode });
+        Swal.fire({
+          icon:'success', title:'นำเข้าสำเร็จ',
+          html: `<div style="text-align:left;font-size:.95rem;">
+                   <div>เพิ่มใหม่: <b>${res.inserted}</b></div>
+                   <div>อัปเดต: <b>${res.updated}</b></div>
+                   <div>ข้าม: <b>${res.skipped}</b></div>
+                   ${res.errors && res.errors.length ? `<hr><div class="text-danger small">ข้อผิดพลาด ${res.errors.length} รายการ:<br>${res.errors.slice(0,5).join('<br>')}</div>` : ''}
+                 </div>`
+        });
+        resetImport();
+      } catch (e) {
+        Swal.fire('นำเข้าล้มเหลว', e.message || 'เกิดข้อผิดพลาด', 'error');
+      } finally {
+        $('#loadingOverlay').hide();
+      }
+    }
+
+    function downloadTemplate(){
+      const ws = XLSX.utils.aoa_to_sheet([
+        MEMBER_FIELDS,
+        ['00001','1234567890123','สมชาย ใจดี','0812345678','123 หมู่ 1','S-0001','SP-0001','กรุงไทย','1234567890','สมชาย ใจดี','active']
+      ]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Member');
+      XLSX.writeFile(wb, 'member_template.xlsx');
     }
 
     $('#depositForm').submit(async function(e) {
