@@ -629,19 +629,26 @@
   <script src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <script>
-    const CONFIG = { API_URL: "https://script.google.com/macros/s/AKfycby0tUwAVVnC3VOp-Y3WD97MPsPo7ZncQQ1gcgcVK-iEJ5uUnp3uYQFbmv2JeHxaLSnF/exec" };
+    const CONFIG = {
+      LIFF_ID: "2008999774-HRjPFn6u",
+      API_URL: "https://script.google.com/macros/s/AKfycby0tUwAVVnC3VOp-Y3WD97MPsPo7ZncQQ1gcgcVK-iEJ5uUnp3uYQFbmv2JeHxaLSnF/exec"
+    };
 
     let table;
-    const adminName = "Admin (Web)";
+    let adminLineUserId = null;
+    let adminName = "Admin (Web)";
 
     async function callAPI(action, payload = {}) {
       try {
+        // แนบ adminLineUserId ไปกับทุก request เพื่อให้ backend ตรวจสิทธิ์แอดมินได้เสมอ
+        const body = Object.assign({}, payload, { adminLineUserId: adminLineUserId });
         const response = await fetch(`${CONFIG.API_URL}?action=${action}`, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(body)
         });
         const json = await response.json();
         if (!json.success) throw new Error(json.message);
@@ -649,13 +656,51 @@
       } catch (error) { throw error; }
     }
 
-    $(document).ready(function() {
-      loadWithdrawData();
+    $(document).ready(async function() {
       $('#mdStatus').change(function() {
         if ($(this).val() === 'โอนเงินแล้ว') $('#divTransfer').show();
         else $('#divTransfer').hide();
       });
+      await initAdminAuth();
     });
+
+    // เข้าสู่ระบบผ่าน LINE LIFF แล้วยืนยันสิทธิ์แอดมินกับ backend ก่อนปล่อยให้ใช้งานหน้านี้
+    async function initAdminAuth() {
+      $('#loadingOverlay').css('display', 'flex');
+      if (!CONFIG.LIFF_ID || CONFIG.LIFF_ID === "YOUR_LIFF_ID_HERE") {
+        showAccessDenied('ยังไม่ได้ตั้งค่า LIFF_ID สำหรับหน้าแอดมินในโค้ด');
+        return;
+      }
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+
+        const profile = await liff.getProfile();
+        adminLineUserId = profile.userId;
+
+        const info = await callAPI('checkAdmin', {});
+        adminName = info.fullName || adminName;
+
+        loadWithdrawData();
+      } catch (err) {
+        console.error('Admin auth error:', err);
+        showAccessDenied(err.message || 'ไม่มีสิทธิ์เข้าถึงหน้านี้ กรุณาติดต่อผู้ดูแลระบบ');
+      } finally {
+        $('#loadingOverlay').hide();
+      }
+    }
+
+    function showAccessDenied(message) {
+      $('.wrap').hide();
+      $('body').append(`
+        <div style="position:fixed;inset:0;background:#0B0B0F;color:#fff;display:flex;
+             align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9999;padding:24px;text-align:center;">
+          <i class="bi bi-shield-lock" style="font-size:2.5rem;"></i>
+          <div style="font-size:1.1rem;font-weight:600;">ไม่สามารถเข้าใช้งานหน้านี้ได้</div>
+          <div style="opacity:.75;max-width:420px;">${message}</div>
+        </div>
+      `);
+    }
 
     function switchMenu(menu, el) {
       $('.section-page').removeClass('active');
